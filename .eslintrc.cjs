@@ -7,7 +7,6 @@ module.exports = {
         browser: true,
     },
     ignorePatterns: [
-        "**/*.test.ts",
         ".eslintrc.cjs",
         "babel.config.js",
         "jest.config.js",
