@@ -1,9 +1,15 @@
+import "reflect-metadata";
+
+class Provide {
+    prop = "asd";
+}
+
 @ClassDeco
 class Stack {
     #heap: unknown[] = [];
 
-    constructor(...args: unknown[]) {
-        this.add(...args);
+    constructor(prov: Provide) {
+        this.add(prov);
     }
 
     public get queue() {
@@ -24,8 +30,8 @@ class Stack {
     }
 }
 
-function ClassDeco(arg1: unknown, arg2: unknown) {
-    console.log({ arg1, arg2 });
+function ClassDeco(arg1: Function) {
+    console.log({ arg1, meta: Reflect.getMetadata("design:paramtypes", arg1) });
 }
 
 console.log("us module onload");
