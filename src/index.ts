@@ -1,3 +1,4 @@
+@ClassDeco
 class Stack {
     #heap: unknown[] = [];
 
@@ -21,6 +22,10 @@ class Stack {
 
         this.#heap.pop();
     }
+}
+
+function ClassDeco(arg1: unknown, arg2: unknown) {
+    console.log({ arg1, arg2 });
 }
 
 console.log("us module onload");

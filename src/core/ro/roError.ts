@@ -6,7 +6,7 @@ import type {
 } from "src/types/ro/roError.type";
 import { notNull } from "src/utils/common";
 
-class ROError {
+export class ROError {
     static Type = {
         type: TypeError,
         range: RangeError,
@@ -88,5 +88,3 @@ class ROError {
         return ROError.Type[err](str);
     }
 }
-
-export default ROError;

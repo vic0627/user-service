@@ -11,6 +11,7 @@ module.exports = {
         "babel.config.js",
         "jest.config.js",
         "rollup.config.cjs",
+        "rollup.config.js",
         "dist",
         "public",
     ],

@@ -28,8 +28,40 @@ export type ArrayLiteral<
     N extends number = number
 > = `${T}[]` | `${T}[${N}]` | `${T}[${N}:]` | `${T}[:${N}]` | `${T}[${N}:${N}]`;
 
-export type RuleLiteral = ArrayLiteral | BasicRuleType;
+/**
+ * ## RuleLiteral
+ * 
+ * - `<T>` - Basic syntax
+ * 
+ * ### Countable types only
+ * 
+ * - `<T>@<E>` - with equal limit
+ * - `<T>@<MIN>:` - with min limit
+ * - `<T>@<MIN>:<MAX>` - with min, max limit
+ * - `<T>@:<MAX>` - with max limit
+ * 
+ * ### ArrayLiteral
+ * 
+ * Assuming all types above can be considered as `<R>`.
+ * 
+ * - `<R>[]` -
+ * - `<R>[<E>]` -
+ * - `<R>[<MIN>:]` -
+ * - `<R>[<MIN>:<MAX>]` -
+ * - `<R>[:<MAX>]` -
+ */
+export type RuleLiteral = ArrayLiteral | BasicRuleType | string;
 
 export type OptionalProp = `$${string}`;
 
 export type PropKey = OptionalProp | string;
+
+export interface TypeMetadata {
+    countable: boolean;
+    measureUnit: string | "length" | "size" | null;
+    allowBytes: boolean;
+    proto: unknown;
+    test: (value: unknown) => boolean;
+}
+
+export type TypeDef = Record<string, TypeMetadata>;

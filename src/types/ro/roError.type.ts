@@ -2,14 +2,50 @@ import { ByteString } from "../byte.type";
 import { RuleLiteral } from "../ruleLiteral.type";
 
 export interface RoErrorConfig {
+    /**
+     * property name
+     */
     prop?: string;
+
+    /**
+     * the actual value received
+     */
     receive?: unknown;
+
+    /**
+     * rule literal
+     */
     rot?: RuleLiteral;
+
+    /**
+     * minimal limitatin
+     */
     min?: number | ByteString;
+
+    /**
+     * maximum limitation
+     */
     max?: number | ByteString;
+
+    /**
+     * equal limitation
+     */
     equal?: number | ByteString;
+
+    /**
+     * Error message with SyntaxError
+     */
     syntax?: string;
+    
+    
+    /**
+     * Error message with TypeError
+     */
     type?: string;
+    
+    /**
+     * Error message
+     */
     message?: string;
 }
 

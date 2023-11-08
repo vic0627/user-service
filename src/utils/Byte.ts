@@ -35,7 +35,7 @@ export class Byte {
     }
 }
 
-class ByteConvertor extends Byte {
+export class ByteConvertor extends Byte {
     static isByteUnit(value: string) {
         return value in ByteConvertor.bytesString;
     }
@@ -137,5 +137,3 @@ class ByteConvertor extends Byte {
         }
     }
 }
-
-export default ByteConvertor;
