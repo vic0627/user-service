@@ -1,111 +1,49 @@
 import type { TypeDef, TypeMetadata } from "src/types/ruleLiteral.type";
-import { ROError } from "./ROError";
+// import { ROError } from "./RuleObjectError";
 
-export const initTypeLib = (): TypeDef => ({
-    string: {
-        countable: true,
-        measureUnit: "length",
-        allowBytes: false,
-        proto: null,
-        test: (value) => typeof value === "string",
-    },
-    number: {
-        countable: true,
-        measureUnit: null,
-        allowBytes: false,
-        proto: null,
-        test: (value) => typeof value === "number",
-    },
-    int: {
-        countable: true,
-        measureUnit: null,
-        allowBytes: false,
-        proto: null,
-        test: (value) => typeof value === "number" && Number.isInteger(value),
-    },
-    blob: {
-        countable: true,
-        measureUnit: "size",
-        allowBytes: true,
-        proto: Blob,
-        test: (value) => value instanceof Blob && !(value instanceof File),
-    },
-    file: {
-        countable: true,
-        measureUnit: "size",
-        allowBytes: true,
-        proto: File,
-        test: (value) => value instanceof File,
-    },
-    filelist: {
-        countable: true,
-        measureUnit: "length",
-        allowBytes: false,
-        proto: FileList,
-        test: (value) => value instanceof FileList,
-    },
-    any: {
-        countable: false,
-        measureUnit: null,
-        allowBytes: false,
-        proto: null,
-        test: () => true,
-    },
-    null: {
-        countable: false,
-        measureUnit: null,
-        allowBytes: false,
-        proto: null,
-        test: (value) => value === null || value === undefined || isNaN(+value),
-    },
-    boolean: {
-        countable: false,
-        measureUnit: null,
-        allowBytes: false,
-        proto: null,
-        test: (value) => typeof value === "boolean",
-    },
-    object: {
-        countable: false,
-        measureUnit: null,
-        allowBytes: false,
-        proto: null,
-        test: (value) => typeof value === "object" && !Array.isArray(value),
-    },
-    date: {
-        countable: false,
-        measureUnit: null,
-        allowBytes: false,
-        proto: Date,
-        test: (value) => value instanceof Date,
-    },
-});
-
+/**
+ * @todo
+ */
 export class TypeLib {
-    static #lib: TypeDef = initTypeLib();
+    // prettier-ignore
+    #def: TypeDef[] = [
+        ['string', true, 'length', false, null, (value) => typeof value === "string"], ['number', true, null, false, null, (value) => typeof value === "number"],
+        ['int', true, null, false, null, (value) => typeof value === "number" && Number.isInteger(value)],
+        ['blob', true, 'size', true, Blob, (value) => value instanceof Blob && !(value instanceof File)],
+        ['file', true, 'size', true, File, (value) => value instanceof File],
+        ['filelist', true, 'length', false, FileList, (value) => value instanceof FileList],
+        ['any', false, null, false, null, () => true],
+        ['null', false, null, false, null, (value) => value === null || value === undefined || isNaN(+value)],
+        ['boolean', false, null, false, null, (value) => typeof value === "boolean"],
+        ['object', false, null, false, null, (value) => typeof value === "object" && !Array.isArray(value)],
+        ['date', false, null, false, Date, (value) => value instanceof Date]
+    ];
 
-    static #instance: TypeLib;
+    #lib = new Map();
 
     constructor() {
-        if (!TypeLib.#instance) TypeLib.#instance = new TypeLib();
-
-        return TypeLib.#instance;
+        this.#def.forEach((def) => {
+            this.#add(...def);
+        });
     }
 
     has(type: string) {
-        return type in TypeLib.#lib;
+        return this.#lib.has(type);
     }
 
-    get(type: keyof TypeDef): TypeMetadata | undefined {
-        return TypeLib.#lib[type];
+    get(type: string): TypeMetadata | undefined {
+        return this.#lib.get(type);
     }
 
-    add(type: string, metadata: TypeMetadata) {
-        if (this.has(type))
-            throw new ROError({
-                message: `Type '${type}' has already exisited.`,
-            });
+    #add(...typeDef: TypeDef) {
+        const [type, countable, measureUnit, allowBytes, proto, test] = typeDef;
 
-        TypeLib.#lib[type] = metadata;
+        this.#lib.set(type, {
+            countable,
+            measureUnit,
+            allowBytes,
+            proto,
+            test,
+        });
     }
 }

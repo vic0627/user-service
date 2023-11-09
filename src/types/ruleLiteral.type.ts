@@ -1,4 +1,5 @@
 import type { ByteString } from "./byte.type";
+import { ClassSignature } from "./common.type";
 
 export type CountableWithByte = "blob" | "file";
 
@@ -10,6 +11,8 @@ export type CountableType =
     | CountableWithByte;
 
 export type UncountableType = "any" | "null" | "boolean" | "object" | "date";
+
+export type BasicType = CountableType | UncountableType;
 
 export type TypeLimitationLiteral<
     C extends CountableType = CountableType,
@@ -30,20 +33,20 @@ export type ArrayLiteral<
 
 /**
  * ## RuleLiteral
- * 
+ *
  * - `<T>` - Basic syntax
- * 
+ *
  * ### Countable types only
- * 
+ *
  * - `<T>@<E>` - with equal limit
  * - `<T>@<MIN>:` - with min limit
  * - `<T>@<MIN>:<MAX>` - with min, max limit
  * - `<T>@:<MAX>` - with max limit
- * 
+ *
  * ### ArrayLiteral
- * 
+ *
  * Assuming all types above can be considered as `<R>`.
- * 
+ *
  * - `<R>[]` -
  * - `<R>[<E>]` -
  * - `<R>[<MIN>:]` -
@@ -64,4 +67,11 @@ export interface TypeMetadata {
     test: (value: unknown) => boolean;
 }
 
-export type TypeDef = Record<string, TypeMetadata>;
+export type TypeDef = [
+    BasicType,
+    boolean,
+    "length" | "size" | null,
+    boolean,
+    ClassSignature | null,
+    (value: unknown) => boolean
+][];

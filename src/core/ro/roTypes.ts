@@ -1,5 +1,5 @@
 import { ByteConvertor } from "src/utils/Byte";
-import { ROError } from "./roError";
+import { ROError } from "./RuleObjectError";
 import { notNull } from "src/utils/common";
 import { TypeLib } from "./TypeLib";
 import type { RuleLiteral } from "src/types/ruleLiteral.type";

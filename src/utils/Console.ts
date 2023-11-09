@@ -1,22 +1,22 @@
 export default class Console {
-    static #basicTemplate(msg: string) {
+    #basicTemplate(msg: string) {
         return `[user-service] ${msg}`;
     }
 
-    static warn(msg: string) {
-        const m = Console.#basicTemplate(msg);
+    warn(msg: string) {
+        const m = this.#basicTemplate(msg);
 
         console.warn(m);
     }
 
-    static error(msg: string) {
-        const m = Console.#basicTemplate(msg);
+    error(msg: string) {
+        const m = this.#basicTemplate(msg);
 
         console.error(m);
     }
 
-    static group(header: string, ...msgs: string[]) {
-        const h = Console.#basicTemplate(header);
+    group(header: string, ...msgs: string[]) {
+        const h = this.#basicTemplate(header);
 
         console.group(h);
 

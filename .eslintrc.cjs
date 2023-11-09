@@ -18,5 +18,7 @@ module.exports = {
     rules: {
         semi: 2,
         "@typescript-eslint/ban-types": 0,
+        "@typescript-eslint/no-explicit-any": 1,
+        "@typescript-eslint/no-unused-vars": 1,
     },
 };

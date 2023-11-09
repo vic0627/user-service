@@ -1,39 +1,45 @@
 import "reflect-metadata";
+import IOCContainer from "./decorator/IOCContainer";
+import Injectable from "./decorator/Injectable";
+import Expose from "./decorator/Expose";
 
-class Provide {
-    prop = "asd";
+class Provide1 {
+    prop = "provide1";
 }
 
-@ClassDeco
-class Stack {
-    #heap: unknown[] = [];
+class Provide2 {
+    prop = "provide2";
+}
 
-    constructor(prov: Provide) {
-        this.add(prov);
+@Expose()
+@Injectable()
+class Inject1 {
+    constructor(private readonly provide2: Provide2) {}
+
+    print(str: string) {
+        console.log(str);
     }
 
-    public get queue() {
-        return this.#heap;
-    }
-
-    public add(...args: unknown[]) {
-        if (args) this.#heap.push(...args);
-    }
-
-    public pop(length?: number) {
-        if (length !== undefined && length !== null) {
-            this.#heap.length -= length;
-            return;
-        }
-
-        this.#heap.pop();
+    getProp() {
+        this.print(this.provide2.prop);
     }
 }
 
-function ClassDeco(arg1: Function) {
-    console.log({ arg1, meta: Reflect.getMetadata("design:paramtypes", arg1) });
+@Injectable()
+class Inject2 {
+    constructor(private readonly provide1: Provide1) {}
+
+    print() {
+        console.log(this.provide1.prop);
+    }
 }
 
-console.log("us module onload");
+@IOCContainer({
+    provides: [Provide1, Provide2],
+    imports: [Inject1, Inject2],
+})
+class Module {
+    constructor() {}
+}
 
-export default Stack;
+export default Module;
