@@ -74,4 +74,4 @@ export type TypeDef = [
     boolean,
     ClassSignature | null,
     (value: unknown) => boolean
-][];
+];

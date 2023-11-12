@@ -1,10 +1,10 @@
-import { EXPOSE_MODULE } from "src/assets/TOKEN";
 import { ClassDecorator, ClassSignature } from "src/types/common.type";
 import { IOCOptions } from "src/types/decorator.type";
+import { META_PARAMTYPES, META_EXPOSE } from "src/assets/METADATA";
 
 /**
- * 
- * @param options 
+ * Inversion of control container
+ * @param options
  */
 export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
     const { provides, imports } = options;
@@ -16,7 +16,7 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
         }));
 
         const importers = (imports?.map((slice) => {
-            const deps = (Reflect.getMetadata("design:paramtypes", slice) ??
+            const deps = (Reflect.getMetadata(META_PARAMTYPES, slice) ??
                 []) as ClassSignature[];
 
             const requirements = deps.map((dep: ClassSignature) =>
@@ -29,7 +29,7 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
             };
         }) ?? []) as { constructor: ClassSignature; requirements: symbol[] }[];
 
-        const targetDep = (Reflect.getMetadata("design:paramtypes", target) ??
+        const targetDep = (Reflect.getMetadata(META_PARAMTYPES, target) ??
             []) as ClassSignature[];
 
         const targetDepToken = (targetDep?.map((dep: ClassSignature) =>
@@ -69,7 +69,7 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
                     const value = new constructor(...(deps || []));
 
                     const expose = (Reflect.getMetadata(
-                        EXPOSE_MODULE,
+                        META_EXPOSE,
                         constructor
                     ) ?? "") as string;
                     if (expose) IoC.prototype[expose] = value;
