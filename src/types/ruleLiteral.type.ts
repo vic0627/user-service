@@ -59,13 +59,13 @@ export type OptionalProp = `$${string}`;
 
 export type PropKey = OptionalProp | string;
 
-export interface TypeMetadata {
-    countable: boolean;
-    measureUnit: string | "length" | "size" | null;
-    allowBytes: boolean;
-    proto: unknown;
-    test: (value: unknown) => boolean;
-}
+// export interface TypeMetadata {
+//     countable: boolean;
+//     measureUnit: string | "length" | "size" | null;
+//     allowBytes: boolean;
+//     proto: unknown;
+//     test: (value: unknown) => boolean;
+// }
 
 export type TypeDef = [
     BasicType,
@@ -75,3 +75,17 @@ export type TypeDef = [
     ClassSignature | null,
     (value: unknown) => boolean
 ];
+
+export interface Limitation {
+    max?: number;
+    min?: number;
+    equal?: number;
+}
+
+export interface Rule {
+    type: BasicType | string;
+    limitation?: boolean;
+    hasArray?: boolean;
+    typeLimitation?: Limitation;
+    arrayLimitation?: Limitation;
+}

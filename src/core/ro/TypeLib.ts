@@ -1,5 +1,4 @@
 import type { TypeDef, TypeMetadata } from "src/types/ruleLiteral.type";
-// import { ROError } from "./RuleObjectError";
 
 /**
  * @todo

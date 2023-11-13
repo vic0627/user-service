@@ -24,12 +24,18 @@ export class Byte {
     zb = 2 ** 70;
     yb = 2 ** 80;
 
+    #byteStr: ByteLib | undefined;
+
     get bytesString(): ByteLib {
+        if (this.#byteStr) return this.#byteStr;
+
         const str: ByteLib | Record<string, string> = {};
 
         this.byteUnits.forEach((unit) => {
             str[unit] = unit;
         });
+
+        this.#byteStr = str;
 
         return str;
     }
