@@ -1,6 +1,6 @@
 export default class Console {
     #basicTemplate(msg: string) {
-        return `[user-service] ${msg}`;
+        return `[User Service] ${msg}`;
     }
 
     warn(msg: string) {

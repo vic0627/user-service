@@ -1,8 +1,5 @@
 import type { TypeDef, TypeMetadata } from "src/types/ruleLiteral.type";
 
-/**
- * @todo
- */
 export class TypeLib {
     // prettier-ignore
     #def: TypeDef[] = [
@@ -37,12 +34,15 @@ export class TypeLib {
     #add(...typeDef: TypeDef) {
         const [type, countable, measureUnit, allowBytes, proto, test] = typeDef;
 
-        this.#lib.set(type, {
+        const typeInfo: TypeMetadata = {
+            _type: type,
             countable,
             measureUnit,
             allowBytes,
             proto,
             test,
-        });
+        };
+
+        this.#lib.set(type, typeInfo);
     }
 }

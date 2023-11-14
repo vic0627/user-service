@@ -1,5 +1,6 @@
 import type { ByteString } from "./byte.type";
 import { ClassSignature } from "./common.type";
+import { RuleErrorOption } from "./ro/RuleError.type";
 
 export type CountableWithByte = "blob" | "file";
 
@@ -59,13 +60,19 @@ export type OptionalProp = `$${string}`;
 
 export type PropKey = OptionalProp | string;
 
-// export interface TypeMetadata {
-//     countable: boolean;
-//     measureUnit: string | "length" | "size" | null;
-//     allowBytes: boolean;
-//     proto: unknown;
-//     test: (value: unknown) => boolean;
-// }
+export interface TypeMetadata {
+    _type: BasicType;
+    countable: boolean;
+    measureUnit:
+        | string
+        | "length"
+        | "size"
+        | null
+        | keyof Record<string, unknown>;
+    allowBytes: boolean;
+    proto: unknown;
+    test: (value: unknown) => boolean;
+}
 
 export type TypeDef = [
     BasicType,
@@ -84,8 +91,11 @@ export interface Limitation {
 
 export interface Rule {
     type: BasicType | string;
+    typeInfo?: TypeMetadata;
     limitation?: boolean;
     hasArray?: boolean;
     typeLimitation?: Limitation;
     arrayLimitation?: Limitation;
 }
+
+export type RuleValidator = (param: string, value: unknown) => RuleErrorOption;

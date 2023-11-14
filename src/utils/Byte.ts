@@ -1,5 +1,5 @@
 import type { ByteUnit, ByteString, ByteLib } from "src/types/byte.type";
-import { NumOrString } from "src/types/common.type";
+import type { NumOrString } from "src/types/common.type";
 
 export class Byte {
     byteUnits: ByteUnit[] = [
@@ -56,12 +56,20 @@ export class ByteConvertor extends Byte {
         return this.byteUnits.reduce((pre, cur) => {
             if (pre) return pre;
 
-            return value.endsWith(cur);
+            const exam = value.endsWith(cur);
+
+            if (exam) {
+                const n = +value.replace(cur, '');
+
+                if (isNaN(n)) throw new SyntaxError(`Bad byte syntax '${value}'.`);
+            }
+
+            return exam;
         }, false);
     }
 
     toNumber(value: string) {
-        if (this.isByteUnit(value)) return this.unitToBytes(value);
+        if (this.hasByteUnit(value)) return this.unitToBytes(value);
 
         return +value;
     }

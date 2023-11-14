@@ -1,27 +1,10 @@
-import {
-    ROArray,
-    ROIntersectionArray,
-    ROUnionArray,
-} from "src/core/ro/roArray";
-import { RuleLiteral, PropKey } from "./ruleLiteral.type";
+import { RuleLiteral, PropKey, RuleValidator } from "./ruleLiteral.type";
 
-export interface RuleValidation {
-    result: boolean;
-    errorMessage?: string;
-}
+export type RuleEvaluation = RuleValidator | RegExp;
 
-export type RuleValidator = (value: unknown) => RuleValidation;
+export type ValidRule = string | RuleLiteral | RuleEvaluation;
 
-export type ValidRule = string | RuleLiteral | RuleValidator | RegExp;
-
-export type RuleObject = Record<
-    PropKey,
-    | ValidRule
-    | ValidRule[]
-    | ROArray<ValidRule>
-    | ROUnionArray
-    | ROIntersectionArray
->;
+export type RuleObject = Record<PropKey, ValidRule | ValidRule[]>;
 
 export interface TypeCheckResult {
     rotCheck: boolean;
