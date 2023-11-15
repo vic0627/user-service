@@ -1,6 +1,6 @@
 import type { TypeDef, TypeMetadata } from "src/types/ruleLiteral.type";
 
-export class TypeLib {
+export default class TypeLib {
     // prettier-ignore
     #def: TypeDef[] = [
         ['string', true, 'length', false, null, (value) => typeof value === "string"], ['number', true, null, false, null, (value) => typeof value === "number"],

@@ -15,3 +15,15 @@ export interface TypeCheckResult {
     hasArray?: boolean;
     type?: string;
 }
+
+export type RuleArrayType = "union" | "intersection";
+
+export interface RuleArrayQueueObject {
+    type: RuleArrayType;
+    rules: RuleValidator[];
+}
+
+export interface RuleArrayExecutorArgs extends RuleArrayQueueObject {
+    param: string;
+    value: unknown;
+}

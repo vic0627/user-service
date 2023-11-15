@@ -56,7 +56,7 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
          */
         const instances = new Map(providers);
         const queue = new Map(importers);
-        const exposeModules = new Map();
+        const exposeModules = new Map<string, {}>();
 
         while (queue.size) {
             const cacheSize = queue.size;
@@ -108,7 +108,11 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
                 super(...injections);
 
                 exposeModules.forEach((module, name) => {
-                    IoC.prototype[name] = module;
+                    Object.defineProperty(this, name, {
+                        value: module,
+                        writable: false,
+                        configurable: false,
+                    });
                 });
             }
         };

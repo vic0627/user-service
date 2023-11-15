@@ -58,10 +58,12 @@ export class ByteConvertor extends Byte {
 
             const exam = value.endsWith(cur);
 
-            if (exam) {
-                const n = +value.replace(cur, '');
+            if (exam && cur !== this.bytesString.b) {
+                const n = value.replace(cur, "");
+                console.log({ n });
 
-                if (isNaN(n)) throw new SyntaxError(`Bad byte syntax '${value}'.`);
+                if (isNaN(+n))
+                    throw new SyntaxError(`Bad byte syntax '${value}'.`);
             }
 
             return exam;
@@ -69,21 +71,21 @@ export class ByteConvertor extends Byte {
     }
 
     toNumber(value: string) {
-        if (this.hasByteUnit(value)) return this.unitToBytes(value);
+        if (this.hasByteUnit(value)) return this.#unitToBytes(value);
 
         return +value;
     }
 
     toString(value: number) {
-        return this.bytesToUnit(value);
+        return this.#bytesToUnit(value);
     }
 
     /**
      * 將數字(bytes)轉換為最接近的對應單位的儲存容量
-     * @param {NumOrString} bytes
-     * @returns {ByteString} unit
+     * @param bytes
+     * @returns unit
      */
-    bytesToUnit(bytes: NumOrString): ByteString {
+    #bytesToUnit(bytes: NumOrString): ByteString {
         if (isNaN(+bytes)) throw new Error(`Invalid bytes '${bytes}' provided`);
 
         bytes = +bytes;
@@ -111,44 +113,36 @@ export class ByteConvertor extends Byte {
 
     /**
      * 將含有單位的儲存容量轉換為數字(bytes)
-     * @param {ByteString | string} unit
-     * @returns {number} bytes
+     * @param unit
+     * @returns bytes
      */
-    unitToBytes(unit: ByteString | ByteUnit | string): number {
-        if (!this.hasByteUnit(unit))
-            throw new Error(`Invalid numeric value '${unit}'`);
-
+    #unitToBytes(unit: ByteString | ByteUnit | string): number {
         const numericValue = parseFloat(unit);
 
-        let unitChar: string = "";
+        if (numericValue < 0) throw new Error("Invalid negative value.");
 
-        for (let i = unit.length - 1; i >= 0; i--) {
-            const char: string = unit[i];
+        const unitChar: string = unit.replace(numericValue + "", "");
 
-            if (!isNaN(+char)) break;
-
-            unitChar = char + unitChar;
-        }
-
+        console.log({ numericValue, unitChar });
         switch (unitChar) {
             case "b":
-                return ~~numericValue;
-            case "k":
-                return ~~(numericValue * this.kb);
-            case "m":
-                return ~~(numericValue * this.mb);
-            case "g":
-                return ~~(numericValue * this.gb);
-            case "t":
-                return ~~(numericValue * this.tb);
-            case "p":
-                return ~~(numericValue * this.pb);
-            case "e":
-                return ~~(numericValue * this.eb);
-            case "z":
-                return ~~(numericValue * this.zb);
-            case "y":
-                return ~~(numericValue * this.yb);
+                return numericValue;
+            case "kb":
+                return numericValue * this.kb;
+            case "mb":
+                return numericValue * this.mb;
+            case "gb":
+                return numericValue * this.gb;
+            case "tb":
+                return numericValue * this.tb;
+            case "pb":
+                return numericValue * this.pb;
+            case "eb":
+                return numericValue * this.eb;
+            case "zb":
+                return numericValue * this.zb;
+            case "yb":
+                return numericValue * this.yb;
             default:
                 throw new Error(`Invalid unit '${unit}' provided`);
         }
