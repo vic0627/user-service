@@ -60,6 +60,8 @@ export type OptionalProp = `$${string}`;
 
 export type PropKey = OptionalProp | string;
 
+export type TypeValidator = (value: unknown) => boolean;
+
 export interface TypeMetadata {
     _type: BasicType;
     countable: boolean;
@@ -71,7 +73,7 @@ export interface TypeMetadata {
         | keyof Record<string, unknown>;
     allowBytes: boolean;
     proto: unknown;
-    test: (value: unknown) => boolean;
+    test: TypeValidator;
 }
 
 export type TypeDef = [
@@ -80,7 +82,7 @@ export type TypeDef = [
     "length" | "size" | null,
     boolean,
     ClassSignature | null,
-    (value: unknown) => boolean
+    TypeValidator
 ];
 
 export interface Limitation {

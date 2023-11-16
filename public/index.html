@@ -13,8 +13,15 @@
         <script src="../dist/user-service.js"></script>
         <!-- <script src="./1.js"></script> -->
         <script>
-            window.u = new us();
+            // window.us = us;
 
+            us.declareType("wtf", (value) => value === "wtf");
+
+            console.log(us);
+
+            const token = us.declareIntersection("wtf");
+
+            window.intersection = us.default.RuleArray.find(token)?.executor;
             // console.log();
         </script>
     </body>

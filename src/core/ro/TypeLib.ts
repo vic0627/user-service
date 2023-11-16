@@ -1,4 +1,9 @@
-import type { TypeDef, TypeMetadata } from "src/types/ruleLiteral.type";
+import type {
+    BasicType,
+    TypeDef,
+    TypeMetadata,
+    TypeValidator,
+} from "src/types/ruleLiteral.type";
 
 export default class TypeLib {
     // prettier-ignore
@@ -29,6 +34,19 @@ export default class TypeLib {
 
     get(type: string): TypeMetadata | undefined {
         return this.#lib.get(type);
+    }
+
+    declareType(type: string, validator: TypeValidator) {
+        const res = validator(null);
+
+        if (typeof type !== "string")
+            throw new TypeError(`Invalid type '${typeof type}' for 'type'`);
+        if (typeof res !== "boolean")
+            throw new TypeError("Type validator must return boolean value");
+
+        this.#add(type as BasicType, false, null, false, null, validator);
+
+        return type;
     }
 
     #add(...typeDef: TypeDef) {

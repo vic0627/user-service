@@ -1,16 +1,10 @@
 import "reflect-metadata";
-import IOCContainer from "./decorator/IOCContainer";
-import { Byte, ByteConvertor } from "./utils/Byte";
-import TypeLib from "./core/ro/TypeLib";
-import StringRule from "./core/ro/StringRule";
-import RuleArray from "./core/ro/RuleArray";
+import UserService from "./core/UserService";
 
-@IOCContainer({
-    provides: [TypeLib, Byte, ByteConvertor],
-    imports: [StringRule, RuleArray],
-})
-class Module {
-    constructor() {}
-}
+// export const { declareType, declareUnion, declareIntersection } = UserService;
 
-export default Module;
+export default UserService;
+
+export const declareType = UserService.declareType.bind(UserService);
+export const declareUnion = UserService.declareUnion.bind(UserService);
+export const declareIntersection = UserService.declareIntersection.bind(UserService);

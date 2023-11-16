@@ -9,12 +9,12 @@ import type {
     TypeMetadata,
 } from "src/types/ruleLiteral.type";
 import { RuleErrorOption } from "src/types/ro/RuleError.type";
-import Expose from "src/decorator/Expose";
+// import Expose from "src/decorator/Expose";
 
 /**
  * Check and destructure RuleLiteral
  */
-@Expose()
+// @Expose()
 @Injectable()
 export default class StringRule {
     #limitSymbol = "@";
