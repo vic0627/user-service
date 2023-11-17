@@ -4,7 +4,7 @@ export type RuleEvaluation = RuleValidator | RegExp;
 
 export type ValidRule = string | RuleLiteral | RuleEvaluation;
 
-export type RuleObject = Record<PropKey, ValidRule | ValidRule[]>;
+export type RuleObjectInterface = Record<PropKey, ValidRule | ValidRule[]>;
 
 export interface TypeCheckResult {
     rotCheck: boolean;
