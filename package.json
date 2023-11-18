@@ -5,8 +5,10 @@
   "main": "./index.ts",
   "scripts": {
     "test": "jest",
+    "lint": "eslint src",
     "dev": "rollup -c --watch",
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "VICTOR HSU",
@@ -30,7 +32,8 @@
     "rollup": "^4.3.0",
     "rollup-plugin-cleanup": "^3.2.1",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "husky": "^8.0.0"
   },
   "dependencies": {
     "reflect-metadata": "^0.1.13",

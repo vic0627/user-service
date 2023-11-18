@@ -107,9 +107,9 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
 
                 super(...injections);
 
-                exposeModules.forEach((module, name) => {
+                exposeModules.forEach((value, name) => {
                     Object.defineProperty(this, name, {
-                        value: module,
+                        value,
                         writable: false,
                         configurable: false,
                     });
