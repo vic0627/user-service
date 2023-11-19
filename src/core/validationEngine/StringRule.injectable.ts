@@ -1,6 +1,6 @@
-import Injectable from "src/decorator/Injectable";
-import TypeLib from "./TypeLib";
-import { ByteConvertor } from "src/utils/Byte";
+import Injectable from "src/decorator/Injectable.decorator";
+import TypeLib from "./TypeLib.provider";
+import { ByteConvertor } from "src/utils/Byte.provider";
 import type {
     Limitation,
     Rule,

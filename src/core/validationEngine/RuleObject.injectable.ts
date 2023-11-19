@@ -1,6 +1,6 @@
-import Injectable from "src/decorator/Injectable";
-import StringRule from "./StringRule";
-import RuleArray from "./RuleArray";
+import Injectable from "src/decorator/Injectable.decorator";
+import StringRule from "./StringRule.injectable";
+import RuleArray from "./RuleArray.injectable";
 // import TypeLib from "./TypeLib";
 // import { RuleObjectInterface } from "src/types/ruleObject.type";
 

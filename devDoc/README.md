@@ -88,6 +88,46 @@ globl.$service.exampleApi({
 - **Client Interface / index.ts**：彙整單/多個 IoC 容器，提供最終使用者介面，也是引入套件的地方。
 - **Fascade / IoC**：表象模式/控制反轉容器，彙整單/多個功能模組，提供一個完整功能。
 - **Injectable**：有依賴注入的功能模組。
-- **Base / Derived Provider**：無依賴注入的類別，提供最純粹的功能，為整個程式架構最基礎單位，base / derived 為 provider 的繼承關係。
+- **Base / Derived Provider**：無依賴注入的功能模組，提供最純粹的功能，為整個程式架構最基礎單位，base / derived 為 provider 的繼承關係。
 
 > **[提醒]** 功能在進行切割、拆分時須注意彼此是否有**循環依賴**（A 依賴於 B、B 依賴於 C、C 依賴於 A）。如果有，請考慮其他拆分方式，避免在 IoC 建立依賴實例時出現錯誤。
+
+## 命名公約
+
+- **靜態資源(常數)**
+  - 路徑：src/assets
+  - 檔名：Uppercase，單字之間以底線 `_` 作為間隔。
+  - 變數名：同上。
+
+- **型別文件**
+  - 路徑：src/types
+  - 檔名：*.type.ts
+  - 變數名：Pascal，每一個單字的首字母都採用大寫字母。
+
+- **裝飾器**
+  - 路徑：src/decorator
+  - 檔名：*.decorator.ts
+  - 變數名：Pascal，每一個單字的首字母都採用大寫字母。
+
+- **Provider**
+  - 路徑：無特定路徑。
+  - 檔名：*.provider.ts
+  - 變數名：Pascal，每一個單字的首字母都採用大寫字母。
+
+- **Injectable**
+  - 路徑：無特定路徑。
+  - 檔名：*.injectable.ts
+  - 變數名：Pascal，每一個單字的首字母都採用大寫字母。
+
+- **IoC Container**
+  - 路徑：無特定路徑。
+  - 檔名：*.ioc.ts
+  - 變數名：Pascal，每一個單字的首字母都採用大寫字母。
+
+### 私有成員
+
+當今天 Injectable 在引入依賴時，請使用 `private readonly` 關鍵字對參數進行聲明，TS 會自動建立你所聲明的成員，無須另外在建構函數內進行賦值。
+
+而當今天需要聲明真正的私有成員時，請使用 `#` 作為前綴。
+
+>關於 JS class 私有屬性，可以參考[這裡](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties)

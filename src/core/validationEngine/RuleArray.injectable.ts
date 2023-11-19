@@ -1,5 +1,5 @@
-import Injectable from "src/decorator/Injectable";
-import StringRule from "./StringRule";
+import Injectable from "src/decorator/Injectable.decorator";
+import StringRule from "./StringRule.injectable";
 import { symbolToken } from "src/utils/common";
 import type {
     RuleArrayExecutorArgs,
@@ -9,7 +9,7 @@ import type {
 } from "src/types/ruleObject.type";
 import type { RuleValidator } from "src/types/ruleLiteral.type";
 import type { RuleErrorOption } from "src/types/ro/RuleError.type";
-import Expose from "src/decorator/Expose";
+import Expose from "src/decorator/Expose.decorator";
 
 @Expose()
 @Injectable()

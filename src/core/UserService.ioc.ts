@@ -1,8 +1,8 @@
-import IOCContainer from "../decorator/IOCContainer";
-import { Byte, ByteConvertor } from "../utils/Byte";
-import TypeLib from "./validationEngine/TypeLib";
-import StringRule from "./validationEngine/StringRule";
-import RuleArray from "./validationEngine/RuleArray";
+import IOCContainer from "../decorator/IOCContainer.decorator";
+import { Byte, ByteConvertor } from "../utils/Byte.provider";
+import TypeLib from "./validationEngine/TypeLib.provider";
+import StringRule from "./validationEngine/StringRule.injectable";
+import RuleArray from "./validationEngine/RuleArray.injectable";
 import { ValidRule } from "src/types/ruleObject.type";
 import { TypeValidator } from "src/types/ruleLiteral.type";
 
