@@ -77,12 +77,12 @@ export interface TypeMetadata {
 }
 
 export type TypeDef = [
-    BasicType,
-    boolean,
-    "length" | "size" | null,
-    boolean,
-    ClassSignature | null,
-    TypeValidator
+    _type: BasicType,
+    countable: boolean,
+    measureUnit: "length" | "size" | null,
+    allowBytes: boolean,
+    proto: ClassSignature | null,
+    test: TypeValidator
 ];
 
 export interface Limitation {

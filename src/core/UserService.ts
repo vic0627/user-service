@@ -1,8 +1,8 @@
 import IOCContainer from "../decorator/IOCContainer";
 import { Byte, ByteConvertor } from "../utils/Byte";
-import TypeLib from "./ro/TypeLib";
-import StringRule from "./ro/StringRule";
-import RuleArray from "./ro/RuleArray";
+import TypeLib from "./validationEngine/TypeLib";
+import StringRule from "./validationEngine/StringRule";
+import RuleArray from "./validationEngine/RuleArray";
 import { ValidRule } from "src/types/ruleObject.type";
 import { TypeValidator } from "src/types/ruleLiteral.type";
 
@@ -16,16 +16,16 @@ class Module {
         private readonly typeLib: TypeLib
     ) {}
 
-    declareType(type: string, validator: TypeValidator) {
-        return this.typeLib.declareType(type, validator);
+    defineType(type: string, validator: TypeValidator) {
+        return this.typeLib.defineType(type, validator);
     }
 
-    declareUnion(...rules: ValidRule[]) {
-        return this.ruleArray.decalreUnion(...rules);
+    defineUnion(...rules: ValidRule[]) {
+        return this.ruleArray.defineUnion(...rules);
     }
 
-    declareIntersection(...rules: ValidRule[]) {
-        return this.ruleArray.decalreIntersection(...rules);
+    defineIntersection(...rules: ValidRule[]) {
+        return this.ruleArray.defineIntersection(...rules);
     }
 }
 

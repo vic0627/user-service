@@ -12,7 +12,7 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
 
     return (target) => {
         /**
-         *
+         * provides 的 token 與實例陣列
          */
         const providers = (provides?.map((slice: ClassSignature) => [
             Symbol.for(slice.toString()),
@@ -20,7 +20,7 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
         ]) ?? []) as Provider[];
 
         /**
-         *
+         * imports 的 token、建構函數與其所需依賴
          */
         const importers = (imports?.map((slice) => {
             const token = Symbol.for(slice.toString());
@@ -42,7 +42,7 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
         }) ?? []) as Importer[];
 
         /**
-         *
+         * 作為 Ioc 容器的類本身所需的依賴
          */
         const targetDep = (Reflect.getMetadata(META_PARAMTYPES, target) ??
             []) as ClassSignature[];
@@ -52,12 +52,21 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
         ) ?? []) as symbol[];
 
         /**
-         *
+         * 已建立的實例
          */
         const instances = new Map(providers);
+        /**
+         * 等待建立的實例
+         */
         const queue = new Map(importers);
+        /**
+         * 需要直接暴露在 IoC 容器實例上的功能模組
+         */
         const exposeModules = new Map<string, {}>();
 
+        /**
+         * 當還有未被建立實例的類，就持續遍歷 queue
+         */
         while (queue.size) {
             const cacheSize = queue.size;
 
@@ -90,13 +99,22 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
             });
 
             if (cacheSize === queue.size) {
+                /**
+                 * 跑到這裡代表有依賴沒被傳入 IoC
+                 */
                 console.warn("Missing dependency.");
                 break;
             }
         }
 
+        /**
+         * 裝飾器最終會返回原類別的繼承類
+         */
         return class IoC extends target {
             constructor(...args: any[]) {
+                /**
+                 * 給 IoC 注入所需依賴
+                 */
                 const injections = targetDepToken.map((token: symbol) => {
                     const dep = instances.get(token);
 
@@ -107,6 +125,9 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
 
                 super(...injections);
 
+                /**
+                 * 掛載要暴露的功能模組
+                 */
                 exposeModules.forEach((value, name) => {
                     Object.defineProperty(this, name, {
                         value,

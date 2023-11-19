@@ -25,12 +25,12 @@ export default class RuleArray {
 
     constructor(private readonly stringRule: StringRule) {}
 
-    decalreUnion(...rules: ValidRule[]) {
-        return this.#declare("union", rules);
+    defineUnion(...rules: ValidRule[]) {
+        return this.#define("union", rules);
     }
 
-    decalreIntersection(...rules: ValidRule[]) {
-        return this.#declare("intersection", rules);
+    defineIntersection(...rules: ValidRule[]) {
+        return this.#define("intersection", rules);
     }
 
     find(token: symbol) {
@@ -48,7 +48,7 @@ export default class RuleArray {
         };
     }
 
-    #declare(type: RuleArrayType, rules: ValidRule[]) {
+    #define(type: RuleArrayType, rules: ValidRule[]) {
         const token = symbolToken(rules.toString());
 
         if (this.#queue.has(token))

@@ -87,14 +87,14 @@ export default class StringRule {
         if (this.isPureType(rot))
             return this.#validatorGenerator({ type: rot });
 
-        return this.#arrayFactory(rot);
+        return this.#arrayPipe(rot);
     }
 
-    #arrayFactory(rot: RuleLiteral) {
+    #arrayPipe(rot: RuleLiteral) {
         /**
          * 1. Pass rot to limitation factory if it does not include array syntax.
          */
-        if (!this.hasArray(rot)) return this.#limitationFactory(rot);
+        if (!this.hasArray(rot)) return this.#limitationPipe(rot);
 
         /**
          * 2. Destructure array syntax and pass the rest of the rot and information of array limitation to limitation factory.
@@ -130,10 +130,10 @@ export default class StringRule {
         } else if (arrLimit !== "")
             throw new SyntaxError("Bad array limitation.");
 
-        return this.#limitationFactory(_rot, arrayOptions);
+        return this.#limitationPipe(_rot, arrayOptions);
     }
 
-    #limitationFactory(rot: RuleLiteral, arrayOptions?: Limitation) {
+    #limitationPipe(rot: RuleLiteral, arrayOptions?: Limitation) {
         if (!this.hasLimitation(rot)) throw new SyntaxError("Bad rot syntax.");
 
         /**
