@@ -8,13 +8,12 @@ import type {
     RuleValidator,
     TypeMetadata,
 } from "src/types/ruleLiteral.type";
-import { RuleErrorOption } from "src/types/ro/RuleError.type";
-// import Expose from "src/decorator/Expose";
+import { RuleErrorOption } from "src/types/ruleError.type";
+import { ValidRule } from "src/types/ruleObject.type";
 
 /**
  * Check and destructure RuleLiteral
  */
-// @Expose()
 @Injectable()
 export default class StringRule {
     #limitSymbol = "@";
@@ -72,6 +71,32 @@ export default class StringRule {
         throw new SyntaxError(`Bad range syntax '${rot}'.`);
     }
 
+    evaluate(rule: ValidRule) {
+        if (typeof rule === "string") return this.#evaluateRuleLiteral(rule);
+
+        if (typeof rule === "function") {
+            const { valid, msg } = rule("test", null) ?? {};
+
+            const invalidRule =
+                typeof valid !== "boolean" ||
+                (typeof msg !== "string" && msg !== null);
+
+            if (invalidRule) throw new Error("Invalid validator function.");
+
+            return rule;
+        }
+
+        if (rule instanceof RegExp)
+            return (param: string, value: unknown) => {
+                const valid = rule.test(value as string);
+                const msg = `Parameter '${param}' does not conform to the regular expression '${rule}'.`;
+
+                return { valid, msg };
+            };
+
+        throw new Error(`Invalid rule '${String(rule)}'.`);
+    }
+
     /**
      * main method to evaluate rot syntax
      * @param rot rot syntax string
@@ -80,7 +105,7 @@ export default class StringRule {
      * 1. trimming rot string
      * 2. judging if rot is pure type or not
      */
-    evaluate(rot: RuleLiteral) {
+    #evaluateRuleLiteral(rot: RuleLiteral) {
         rot = rot.replaceAll(" ", "");
         rot = rot.toLowerCase();
 
@@ -194,7 +219,10 @@ export default class StringRule {
                 max: string | number | undefined;
             [min, max] = limitation.split(this.#rangeSymbol);
 
-            const validLimit = (limit: string | number) => limit === "" || (isNaN(+limit) && !this.byteConvertor.hasByteUnit(limit as string));
+            const validLimit = (limit: string | number) =>
+                limit === "" ||
+                (isNaN(+limit) &&
+                    !this.byteConvertor.hasByteUnit(limit as string));
 
             const noMin = validLimit(min);
             const noMax = validLimit(max);
@@ -231,7 +259,7 @@ export default class StringRule {
 
             const equal = this.byteConvertor.toNumber(limitation);
 
-            console.log({ illegalByte, equal });
+            // console.log({ illegalByte, equal });
 
             configLimitation(typeLimitation, "equal", equal);
         }
@@ -239,7 +267,7 @@ export default class StringRule {
         if (Object.keys(typeLimitation).length)
             result.typeLimitation = typeLimitation;
 
-        console.log({ result });
+        // console.log({ result });
 
         return this.#validatorGenerator(result);
     }
@@ -270,7 +298,7 @@ export default class StringRule {
                 ? `The ${measureUnit} of parameter '${param}' must be `
                 : `The parameter '${param}' must be `;
 
-            console.log({ typeLimitation });
+            // console.log({ typeLimitation });
 
             return this.#rangeValidator(
                 value,

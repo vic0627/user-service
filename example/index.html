@@ -14,18 +14,27 @@
         <!-- 先不要參考這份 html -->
         <button id="a">點我</button>
         <script src="../dist/user-service.js"></script>
-        <!-- <script src="./1.js"></script> -->
+        <script src="./xhrtest/index.js"></script>
         <script>
-            // window.us = us;
+            // const {
+            //     defineType,
+            //     defineUnion,
+            //     defineIntersection,
+            //     mergeRules,
+            //     partialRules,
+            //     requiredRules,
+            //     pickRules,
+            //     omitRules,
+            //     evaluate,
+            // } = us;
 
-            us.declareType("wtf", (value) => value === "wtf");
+            // defineType("wtf", (t) => t === "wtf");
 
-            console.log(us);
+            // defineUnion('string@1:3', 'int@0:150')
 
-            const token = us.declareIntersection("wtf");
-
-            window.intersection = us.default.RuleArray.find(token)?.executor;
-            // console.log();
+            xhr({
+                url: 'https://fakestoreapi.com/products'
+            }).then(res => console.log(res))
         </script>
     </body>
 </html>

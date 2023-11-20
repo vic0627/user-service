@@ -1,14 +1,14 @@
 import Injectable from "src/decorator/Injectable.decorator";
 import StringRule from "./StringRule.injectable";
 import { symbolToken } from "src/utils/common";
-import type {
+import {
     RuleArrayExecutorArgs,
     RuleArrayQueueObject,
     RuleArrayType,
     ValidRule,
 } from "src/types/ruleObject.type";
 import type { RuleValidator } from "src/types/ruleLiteral.type";
-import type { RuleErrorOption } from "src/types/ro/RuleError.type";
+import type { RuleErrorOption } from "src/types/ruleError.type";
 import Expose from "src/decorator/Expose.decorator";
 
 @Expose()
@@ -26,11 +26,11 @@ export default class RuleArray {
     constructor(private readonly stringRule: StringRule) {}
 
     defineUnion(...rules: ValidRule[]) {
-        return this.#define("union", rules);
+        return this.#define(RuleArrayType.union, rules);
     }
 
     defineIntersection(...rules: ValidRule[]) {
-        return this.#define("intersection", rules);
+        return this.#define(RuleArrayType.intersection, rules);
     }
 
     find(token: symbol) {
@@ -62,31 +62,7 @@ export default class RuleArray {
     }
 
     #evaluate(rules: ValidRule[]) {
-        return rules.map((rule) => {
-            if (typeof rule === "string") return this.stringRule.evaluate(rule);
-
-            if (typeof rule === "function") {
-                const { valid, msg } = rule("test", null) ?? {};
-
-                const invalidRule =
-                    typeof valid !== "boolean" ||
-                    (typeof msg !== "string" && msg !== null);
-
-                if (invalidRule) throw new Error("Invalid validator function.");
-
-                return rule;
-            }
-
-            if (rule instanceof RegExp)
-                return (param: string, value: unknown) => {
-                    const valid = rule.test(value as string);
-                    const msg = `Parameter '${param}' does not conform to the regular expression '${rule}'.`;
-
-                    return { valid, msg };
-                };
-
-            throw new Error(`Invalid rule '${rule}'.`);
-        });
+        return rules.map((rule) => this.stringRule.evaluate(rule));
     }
 
     #execute({
@@ -105,8 +81,8 @@ export default class RuleArray {
             const validator = rules[i];
             const { valid, msg } = validator(param, value);
 
-            const union = type === "union";
-            const intersection = type === "intersection";
+            const union = type === RuleArrayType.union;
+            const intersection = type === RuleArrayType.intersection;
 
             if (union) {
                 if (!record || valid) {

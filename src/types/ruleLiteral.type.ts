@@ -1,6 +1,6 @@
 import type { ByteString } from "./byte.type";
 import { ClassSignature } from "./common.type";
-import { RuleErrorOption } from "./ro/RuleError.type";
+import { RuleErrorOption } from "./ruleError.type";
 
 export type CountableWithByte = "blob" | "file";
 

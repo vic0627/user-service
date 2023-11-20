@@ -4,7 +4,11 @@ export type RuleEvaluation = RuleValidator | RegExp;
 
 export type ValidRule = string | RuleLiteral | RuleEvaluation;
 
-export type RuleObjectInterface = Record<PropKey, ValidRule | ValidRule[]>;
+export type ObjectRules = symbol | ValidRule | ValidRule[];
+
+export type RuleObjectInterface = Record<PropKey, ObjectRules>;
+
+export type Payload = Record<PropKey, unknown>;
 
 export interface TypeCheckResult {
     rotCheck: boolean;
@@ -16,7 +20,10 @@ export interface TypeCheckResult {
     type?: string;
 }
 
-export type RuleArrayType = "union" | "intersection";
+export enum RuleArrayType {
+    intersection,
+    union,
+}
 
 export interface RuleArrayQueueObject {
     type: RuleArrayType;

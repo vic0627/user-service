@@ -1,5 +1,5 @@
-import { RuleObject } from "../ruleObject.type";
-import { HttpMethod } from "../xhr.type";
+import { RuleObject } from "./ruleObject.type";
+import { HttpMethod } from "./xhr.type";
 
 type ParameterDeclaration = string[] | Record<string, string>;
 

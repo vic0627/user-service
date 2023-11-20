@@ -25,3 +25,13 @@ export type ResponseType =
 export interface HttpHooks {
     // on;
 }
+
+export enum enumHttpMethod {
+    GET = "GET",
+    DELETE = "DELETE",
+    HEAD = "HEAD",
+    OPTIONS = "OPTIONS",
+    POST = "POST",
+    PUT = "PUT",
+    PATCH = "PATCH",
+}

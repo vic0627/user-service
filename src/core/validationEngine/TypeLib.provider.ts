@@ -5,6 +5,7 @@ import type {
     TypeValidator,
 } from "src/types/ruleLiteral.type";
 import TYPES from "src/assets/TYPES";
+import { pureLowerCase } from "src/utils/common";
 
 export default class TypeLib {
     #lib = new Map();
@@ -28,8 +29,11 @@ export default class TypeLib {
 
         if (typeof type !== "string")
             throw new TypeError(`Invalid type '${typeof type}' for 'type'`);
+        if (!pureLowerCase(type)) throw new SyntaxError("Bad syntax");
         if (typeof res !== "boolean")
-            throw new TypeError("Type validator must return boolean value");
+            throw new TypeError(
+                "Type validator must return boolean value in any case"
+            );
 
         this.#add(type as BasicType, false, null, false, null, validator);
 
