@@ -6,16 +6,18 @@ import RuleArray from "./validationEngine/RuleArray.injectable";
 import { RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
 import { TypeValidator } from "src/types/ruleLiteral.type";
 import RuleObject from "./validationEngine/RuleObject.injectable";
+import XHR from "./requestHandler/XHR.provider";
 
 @IOCContainer({
-    provides: [TypeLib, Byte, ByteConvertor],
+    provides: [TypeLib, Byte, ByteConvertor, XHR],
     imports: [StringRule, RuleArray, RuleObject],
 })
 class Module {
     constructor(
         private readonly ruleArray: RuleArray,
         private readonly typeLib: TypeLib,
-        private readonly ruleObject: RuleObject
+        private readonly ruleObject: RuleObject,
+        private readonly xhr: XHR
     ) {}
 
     defineType(type: string, validator: TypeValidator) {
@@ -53,6 +55,15 @@ class Module {
     evaluate(rule: RuleObjectInterface) {
         return this.ruleObject.evaluate(rule);
     }
+
+    getXHR() {
+        return this.xhr;
+    }
 }
 
-export default new Module({} as RuleArray, {} as TypeLib, {} as RuleObject);
+export default new Module(
+    {} as RuleArray,
+    {} as TypeLib,
+    {} as RuleObject,
+    {} as XHR
+);

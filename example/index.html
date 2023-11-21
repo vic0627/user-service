@@ -14,7 +14,7 @@
         <!-- 先不要參考這份 html -->
         <button id="a">點我</button>
         <script src="../dist/user-service.js"></script>
-        <script src="./xhrtest/index.js"></script>
+        <!-- <script src="./xhrtest/index.js"></script> -->
         <script>
             // const {
             //     defineType,
@@ -32,9 +32,27 @@
 
             // defineUnion('string@1:3', 'int@0:150')
 
-            xhr({
-                url: 'https://fakestoreapi.com/products'
-            }).then(res => console.log(res))
+            const xhr = us.getXHR();
+
+            console.log(xhr)
+            
+            const { requestObject, abortController } = xhr.request({
+                url: "https://fakestoreapi.com/products",
+                auth: {
+                    username: "Victor",
+                    password: "asdf456df"
+                }
+            });
+            
+            requestObject
+                .then((res) => {
+                    console.log(res);
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+
+            // abortController();
         </script>
     </body>
 </html>
