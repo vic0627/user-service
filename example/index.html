@@ -37,11 +37,14 @@
             console.log(xhr)
             
             const { requestObject, abortController } = xhr.request({
-                url: "https://fakestoreapi.com/products",
+                url: "http://192.168.1.129/TP_PROJECT_SV/api/v1/Get_Captcha",
                 auth: {
                     username: "Victor",
-                    password: "asdf456df"
-                }
+                    password: "asdf5345fjnhe"
+                },
+                headerMap: true,
+                timeout: 1000,
+                timeoutErrorMessage: "太久啦偉杰"
             });
             
             requestObject

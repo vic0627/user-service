@@ -35,9 +35,14 @@ globl.$service.exampleApi({
 
 ### Request Handler
 
-處理實際的 HTTP 請求，包括設置請求頭、選擇正確的 HTTP 方法，處理 formdata 等。
+處理實際的 HTTP 請求，包括設置請求頭、HTTP 方法等。
 
-目前規劃使用最原始的 `XMLHttpRequest` 進行封裝。
+目前規劃兩個策略，於不同環境執行：
+
+1. XHR(原型已完成)：使用最原始的 `XMLHttpRequest` 進行封裝，適用於瀏覽器環境。
+2. HTTP：使用 node 環境的 http 模組進行封裝，適用於 node 環境。
+
+**策略必為抽象類 `RequestHandler` 的實現**，後續服務層在引用策略時才能依賴於抽象。
 
 ### Cache Manager
 

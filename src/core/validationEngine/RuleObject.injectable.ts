@@ -8,7 +8,8 @@ import {
     ValidRule,
 } from "src/types/ruleObject.type";
 import { RuleValidator } from "src/types/ruleLiteral.type";
-import RuleError from "./RuleError.provider";
+import RuleError from "./RuleError";
+import { notNull } from "src/utils/common";
 
 /**
  * The main validation system factory, deal with all rules that are created by object literal.
@@ -22,8 +23,12 @@ export default class RuleObject {
         private readonly ruleArray: RuleArray
     ) {}
 
-    evaluate(rule: RuleObjectInterface) {
-        const { ruleLib, required } = this.#evaluateRules(rule);
+    evaluate(rule?: RuleObjectInterface) {
+        if (!notNull(rule)) return () => {};
+
+        const { ruleLib, required } = this.#evaluateRules(
+            rule as RuleObjectInterface
+        );
 
         return (payload: Payload) => {
             required.forEach((key) => {

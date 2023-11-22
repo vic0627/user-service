@@ -1,23 +1,20 @@
 import type {
     HeadersConfig,
     HttpAuthentication,
+    HttpResponse,
     PromiseExecutor,
     RequestConfig,
 } from "src/types/xhr.type";
-import { getRanNum, symbolToken } from "src/utils/common";
+import { symbolToken } from "src/utils/common";
+import RequestHandler from "src/abstract/RequestHandler.abstract";
+import RequestError from "./RequestError";
 
 /**
  * # 處理請求的物件
- * 
+ *
  * > 注意：雖然是處理請求的地方，但所有方法皆為同步，唯一只有一個 Promise 物件 `requestObject`，需要透過它來取得請求結果。
  */
-export default class XHR {
-    #defaultConfig: RequestConfig = {};
-
-    setDefaultConfig(config: RequestConfig) {
-        this.#defaultConfig = config;
-    }
-
+export default class XHR implements RequestHandler {
     request(config: RequestConfig) {
         const {
             url = "",
@@ -28,14 +25,17 @@ export default class XHR {
             timeout,
             responseType,
         } = config;
-        const xhr = this.#init();
+
+        let xhr: XMLHttpRequest | null = new XMLHttpRequest();
+
+        const cleanup = () => {
+            xhr = null;
+        };
 
         /**
-         * 這兩個參數預計後面規劃給 cache manager 使用
+         * 這個參數預計後面規劃給 cache manager 使用
          */
-        const { requestToken, tokenString } = this.#getRequestToken();
-
-        const requestConfig = Object.assign(this.#defaultConfig, config);
+        const requestToken = symbolToken(url);
 
         xhr.open(method, url, true);
 
@@ -46,7 +46,8 @@ export default class XHR {
          */
         const { requestObject, abortController } = this.#httpHooksEncapsulation(
             xhr,
-            requestConfig
+            cleanup,
+            config
         );
 
         this.#setTimeout(xhr, timeout);
@@ -58,43 +59,23 @@ export default class XHR {
 
         return {
             requestToken,
-            tokenString,
             requestObject,
             abortController,
-            requestConfig,
+            config,
         };
     }
 
-    #init() {
-        return new XMLHttpRequest();
-    }
-
-    #getRequestToken() {
-        const tokenString =
-            (getRanNum("string") as string).slice(2) +
-            ":" +
-            Date.now().toString();
-
-        const requestToken = symbolToken(tokenString);
-
-        return { requestToken, tokenString };
-    }
-
+    //#region private methods
     #setTimeout(xhr: XMLHttpRequest, t?: number) {
-        const { timeout } = this.#defaultConfig;
-
-        xhr.timeout = t ?? timeout ?? 0;
+        xhr.timeout = t ?? 0;
     }
 
     #setResType(xhr: XMLHttpRequest, resType?: XMLHttpRequestResponseType) {
-        const { responseType } = this.#defaultConfig;
-
-        xhr.responseType = resType ?? responseType ?? "";
+        xhr.responseType = resType ?? "";
     }
 
     #setRequestHeader(xhr: XMLHttpRequest, reqHeader?: HeadersConfig) {
-        const { headers = {} } = this.#defaultConfig;
-        const _headers = Object.assign(headers, reqHeader ?? {});
+        const _headers = reqHeader ?? {};
 
         for (const key in _headers) {
             if (!Object.prototype.hasOwnProperty.call(_headers, key)) continue;
@@ -106,13 +87,13 @@ export default class XHR {
     }
 
     #setAuthentication(xhr: XMLHttpRequest, a?: HttpAuthentication) {
-        const auth = a ?? this.#defaultConfig.auth;
+        const auth = a ?? ({} as HttpAuthentication);
 
         if (!auth) return;
 
-        const username = auth.username || "";
-        const password = auth.password
-            ? unescape(encodeURIComponent(auth.password))
+        const username = auth?.username || "";
+        const password = auth?.password
+            ? decodeURIComponent(encodeURIComponent(auth.password))
             : "";
 
         xhr.setRequestHeader(
@@ -121,12 +102,25 @@ export default class XHR {
         );
     }
 
-    #httpHooksEncapsulation(xhr: XMLHttpRequest, config: RequestConfig) {
+    #httpHooksEncapsulation(
+        xhr: XMLHttpRequest,
+        cleanup: () => void,
+        config: RequestConfig
+    ) {
         let abortController: () => void = () => {
             console.warn("Abort failed");
         };
 
-        const requestObject = new Promise((resolve, reject) => {
+        const requestObject = new Promise((_resolve, _reject) => {
+            const resolve = (value: unknown) => {
+                cleanup();
+                _resolve(value);
+            };
+            const reject = (reason?: unknown) => {
+                cleanup();
+                _reject(reason);
+            };
+
             abortController = () => {
                 xhr.abort();
                 reject();
@@ -168,7 +162,8 @@ export default class XHR {
             executor: PromiseExecutor
         ) => void
     ) {
-        return (e: ProgressEvent | Event) => handler(e, xhr, executor);
+        return (e: ProgressEvent | Event) =>
+            handler.call(this, e, xhr, executor);
     }
 
     #handleAbort(
@@ -176,26 +171,39 @@ export default class XHR {
         xhr: XMLHttpRequest,
         { reject }: PromiseExecutor
     ) {
-        /** @todo */
-        reject(xhr);
+        if (!xhr) return;
+
+        reject(new RequestError("Request aborted"));
     }
 
     #handleTimeout(
         _: ProgressEvent | Event,
         xhr: XMLHttpRequest,
-        { reject }: PromiseExecutor
+        { reject, config }: PromiseExecutor
     ) {
-        /** @todo */
-        reject(xhr);
+        if (!xhr) return;
+
+        const { timeout, timeoutErrorMessage } = config ?? {};
+
+        let errMsg = timeoutErrorMessage;
+        errMsg ??= timeout
+            ? `time of ${timeout}ms exceeded`
+            : "timeout exceeded";
+
+        reject(new RequestError(errMsg));
     }
 
     #handleError(
         _: ProgressEvent | Event,
         xhr: XMLHttpRequest,
-        { reject }: PromiseExecutor
+        { reject, config }: PromiseExecutor
     ) {
-        /** @todo */
-        reject(xhr);
+        if (!xhr) return;
+
+        const { url } = config ?? {};
+        const { status } = xhr;
+
+        reject(new RequestError(`Network Error ${url} ${status}`));
     }
 
     #handleLoadend(
@@ -203,6 +211,8 @@ export default class XHR {
         xhr: XMLHttpRequest,
         { resolve, config }: PromiseExecutor
     ) {
+        if (!xhr) return;
+
         const { responseType, response, responseText, status, statusText } =
             xhr;
 
@@ -211,9 +221,12 @@ export default class XHR {
                 ? responseText
                 : response;
 
-        const headers = xhr.getAllResponseHeaders();
+        let headers: string | Record<string, string> =
+            xhr.getAllResponseHeaders();
+        if (typeof headers === "string" && config?.headerMap)
+            headers = this.#getHeaderMap(headers);
 
-        const res = {
+        const res: HttpResponse = {
             data,
             status,
             statusText,
@@ -224,4 +237,21 @@ export default class XHR {
 
         resolve(res);
     }
+
+    #getHeaderMap(headers: string) {
+        const arr = headers.trim().split(/[\r\n]+/);
+
+        const headerMap: Record<string, string> = {};
+
+        arr.forEach((line) => {
+            const parts = line.split(": ");
+            const header = parts.shift();
+            const value = parts.join(": ");
+
+            if (header) Object.defineProperty(headerMap, header, { value });
+        });
+
+        return headerMap;
+    }
+    //#endregion
 }

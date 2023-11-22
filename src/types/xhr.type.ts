@@ -59,14 +59,32 @@ export interface RequestConfig {
     auth?: HttpAuthentication;
     headers?: HeadersConfig;
     timeout?: number;
+    timeoutErrorMessage?: string;
     responseType?: XMLHttpRequestResponseType;
-    method?: HttpMethod;
+    headerMap?: boolean;
     url?: string;
     payload?: unknown;
+    method?: HttpMethod;
 }
 
 export interface PromiseExecutor {
     resolve: (value: unknown) => void;
     reject: (reason?: any) => void;
     config?: RequestConfig;
+}
+
+export interface RequestDetail {
+    requestToken: symbol;
+    requestObject: Promise<unknown>;
+    abortController: () => void;
+    config: RequestConfig;
+}
+
+export interface HttpResponse {
+    data: any;
+    status: number;
+    statusText: string;
+    headers: string | Record<string, string>;
+    config: RequestConfig | undefined;
+    request: XMLHttpRequest;
 }

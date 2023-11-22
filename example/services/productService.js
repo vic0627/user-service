@@ -143,6 +143,7 @@ export default {
             /**
              * GET https://fakestoreapi.com/products/categories
              * 若無 api 參數，則所有設定將為預設值，默認此路徑只有一個 GET 方法
+             * 此行為只會發生在 children route 上
              *
              * @example
              * $storeAPI.products.getCategories()
