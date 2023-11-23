@@ -7,17 +7,20 @@ import { RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
 import { TypeValidator } from "src/types/ruleLiteral.type";
 import RuleObject from "./validationEngine/RuleObject.injectable";
 import XHR from "./requestHandler/XHR.provider";
+import ServiceFactory from "./serviceLayer/ServiceFactory.injectable";
+import APIFactory from "./serviceLayer/APIFactory.injectable";
+import { ServiceConfig } from "src/types/userService.type";
 
 @IOCContainer({
     provides: [TypeLib, Byte, ByteConvertor, XHR],
-    imports: [StringRule, RuleArray, RuleObject],
+    imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory],
 })
 class Module {
     constructor(
         private readonly ruleArray: RuleArray,
         private readonly typeLib: TypeLib,
         private readonly ruleObject: RuleObject,
-        private readonly xhr: XHR
+        private readonly serviceFactory: ServiceFactory
     ) {}
 
     defineType(type: string, validator: TypeValidator) {
@@ -52,12 +55,8 @@ class Module {
         return this.ruleObject.omitRules(target, ...args);
     }
 
-    evaluate(rule: RuleObjectInterface) {
-        return this.ruleObject.evaluate(rule);
-    }
-
-    getXHR() {
-        return this.xhr;
+    createService(serviceConfig: ServiceConfig) {
+        return this.serviceFactory.createService(serviceConfig);
     }
 }
 
@@ -65,5 +64,5 @@ export default new Module(
     {} as RuleArray,
     {} as TypeLib,
     {} as RuleObject,
-    {} as XHR
+    {} as ServiceFactory
 );

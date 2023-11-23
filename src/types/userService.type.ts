@@ -26,3 +26,8 @@ export interface ServiceConfig
     api?: ApiConfig | ApiConfig[];
     children?: ServiceConfig[];
 }
+
+export interface ParentConfig
+    extends Pick<ServiceBasic, "cache" | "validation">,
+        Omit<RequestConfig, "url" | "payload" | "method">,
+        Pick<ServiceConfig, "baseURL"> {}

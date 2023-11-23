@@ -1,9 +1,13 @@
+import { ParentConfig, ServiceConfig } from "src/types/userService.type";
+import { notNull } from "src/utils/common";
+
 export default class Service {
-    _baseURL?: string;
     _name?: string;
 
     _parent?: Service;
-    _chirdren?: Service[];
+    // _chirdren?: Service[];
+
+    // _config?: ServiceConfig | ParentConfig;
 
     constructor() {}
 
@@ -18,7 +22,13 @@ export default class Service {
             return;
         }
 
-        Object.defineProperty(globalTarget, this._name ?? "serviceAPI", {
+        const name = !notNull(this._name)
+            ? "$serviceAPI"
+            : this._name?.startsWith("$")
+            ? this._name
+            : "$" + this._name;
+
+        Object.defineProperty(globalTarget, name, {
             value: this,
             enumerable: true,
         });

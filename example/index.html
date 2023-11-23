@@ -14,6 +14,7 @@
         <!-- 先不要參考這份 html -->
         <button id="a">點我</button>
         <script src="../dist/user-service.js"></script>
+        <script src="./main.js" type="module"></script>
         <!-- <script src="./xhrtest/index.js"></script> -->
         <script>
             // const {
@@ -32,28 +33,28 @@
 
             // defineUnion('string@1:3', 'int@0:150')
 
-            const xhr = us.getXHR();
+            // const xhr = us.getXHR();
 
-            console.log(xhr)
+            // console.log(xhr)
             
-            const { requestObject, abortController } = xhr.request({
-                url: "http://192.168.1.129/TP_PROJECT_SV/api/v1/Get_Captcha",
-                auth: {
-                    username: "Victor",
-                    password: "asdf5345fjnhe"
-                },
-                headerMap: true,
-                timeout: 1000,
-                timeoutErrorMessage: "太久啦偉杰"
-            });
+            // const { requestObject, abortController } = xhr.request({
+            //     url: "http://192.168.1.129/TP_PROJECT_SV/api/v1/Get_Captcha",
+            //     auth: {
+            //         username: "Victor",
+            //         password: "asdf5345fjnhe"
+            //     },
+            //     headerMap: true,
+            //     timeout: 1000,
+            //     timeoutErrorMessage: "太久啦偉杰"
+            // });
             
-            requestObject
-                .then((res) => {
-                    console.log(res);
-                })
-                .catch((err) => {
-                    console.error(err);
-                });
+            // requestObject
+            //     .then((res) => {
+            //         console.log(res);
+            //     })
+            //     .catch((err) => {
+            //         console.error(err);
+            //     });
 
             // abortController();
         </script>

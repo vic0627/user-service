@@ -123,7 +123,6 @@ export class ByteConvertor extends Byte {
 
         const unitChar: string = unit.replace(numericValue + "", "");
 
-        console.log({ numericValue, unitChar });
         switch (unitChar) {
             case "b":
                 return numericValue;

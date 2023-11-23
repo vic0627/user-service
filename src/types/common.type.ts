@@ -6,4 +6,4 @@ export type ClassSignature = { new (...args: any[]): {} };
 
 export type ClassDecorator = <T extends ClassSignature>(target: T) => T | void;
 
-export type StringAndStringArray = string | string[];
+export type StringAndStringArray = string | (string | number)[];

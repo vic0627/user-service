@@ -1,4 +1,5 @@
-import { defineIntersection } from "user-service";
+import us from "../../dist/user-service.esm.js";
+const { defineIntersection } = us;
 
 /**
  * defineIntersection()
@@ -15,10 +16,18 @@ import { defineIntersection } from "user-service";
 
 const usernameIntersectionRules = defineIntersection(
     "string@3:15",
-    (_, value) => ({
-        valid: value.includes("習近平"),
-        msg: "使用者名稱不可包含敏感字元",
-    })
+    (_, value) => {
+        if (typeof value === "string")
+            return {
+                valid: !value.includes("習近平"),
+                msg: "使用者名稱不可包含敏感字元",
+            };
+        else
+            return {
+                valid: false,
+                msg: "型別錯誤",
+            };
+    }
 );
 
 export default {
@@ -36,12 +45,12 @@ export default {
      * // 有 name
      * $storeAPI.login()
      */
-    name: "login",
-
+    
     api: {
         /**
          *
-         */
+        */
+        name: "login",
         method: "POST",
         rules: {
             username: usernameIntersectionRules,

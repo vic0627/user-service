@@ -10,8 +10,7 @@ const {
     requiredRules,
     pickRules,
     omitRules,
-    evaluate,
-    getXHR
+    createService,
 } = UserService;
 
 export default {
@@ -23,6 +22,5 @@ export default {
     requiredRules: requiredRules.bind(UserService),
     pickRules: pickRules.bind(UserService),
     omitRules: omitRules.bind(UserService),
-    evaluate: evaluate.bind(UserService),
-    getXHR: getXHR.bind(UserService),
+    createService: createService.bind(UserService),
 };

@@ -15,6 +15,12 @@ module.exports = {
         },
         {
             name: "us",
+            file: "./dist/user-service.esm.js",
+            format: "es",
+            // plugins: [cleanup({ extensions: [".ts", ".js"] })],
+        },
+        {
+            name: "us",
             file: "./dist/user-service.min.js",
             format: "iife",
             plugins: [terser()],

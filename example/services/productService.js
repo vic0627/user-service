@@ -1,4 +1,5 @@
-import { mergeRules, partialRules } from "user-service";
+import us from "../../dist/user-service.esm.js";
+const { mergeRules, partialRules } = us;
 
 /** 以下為參數名稱及敘述 */
 
@@ -29,7 +30,7 @@ const productQueryRules = {
     /** $ 開頭為非必要參數，仍可設定驗證規則，將在收到值時執行驗證。 */
     $limit: positiveInt,
     $sort: (_, val) => {
-        if (val !== "desc" || val !== "asc")
+        if (val !== "desc" && val !== "asc")
             return {
                 valid: false,
                 msg: `"Property 'sort' could only be 'desc' or 'asc'.`,
@@ -138,7 +139,7 @@ export default {
     /**
      * 子路由
      */
-    chirdren: [
+    children: [
         {
             /**
              * GET https://fakestoreapi.com/products/categories
@@ -156,6 +157,8 @@ export default {
         },
         {
             route: "category",
+            name: "getProductsIn",
+            description: "Get all products in specific category",
 
             /** 使用物件作為參數，默認此路徑只有一個方法 */
             api: {
@@ -165,7 +168,6 @@ export default {
                  * @example
                  * $storeAPI.products.getProductsIn({ limit?, sort? })
                  */
-                name: "getProductsIn",
                 param: { category: "Name of the category" },
                 query: limitAndSortDescription,
                 rules: mergeRules(productQueryRules, { category: "string" }),
