@@ -51,21 +51,33 @@ export default class APIFactory {
 
         const payloadTester = this.ruleObject.evaluate(rules);
 
-        // this.#ajax?.request({
-        //     url,
-        //     method,
-        //     auth,
-        //     headers,
-        //     headerMap,
-        //     timeout,
-        //     timeoutErrorMessage,
-        //     responseType,
-        // });
-
-        return (payload: Payload) => {
+        return (payload: Payload = {}) => {
             if (validation) payloadTester(payload);
 
-            return this.#paramBuilder(url as string, payload, param, query);
+            const _url = this.#paramBuilder(
+                url as string,
+                payload,
+                param,
+                query
+            );
+
+            const ajax = this.#ajax?.request({
+                url: _url,
+                method,
+                auth,
+                headers,
+                headerMap,
+                timeout,
+                timeoutErrorMessage,
+                responseType,
+            });
+
+            if (!ajax) throw new Error("Request failed");
+
+            const { requestToken, requestObject, abortController, config } =
+                ajax;
+
+            return [requestObject, abortController, config];
         };
     }
 

@@ -71,7 +71,7 @@ console.log(userService);
  * @規劃中 掛載到全域物件
  * 掛載後會以 root service 的 name 重新命名，若沒有配置 root name，預設會是 `$serviceAPI`。
  */
-userService.mount(window);
+// userService.mount(window);
 
 /**
  * 透過 userService 或掛載後的 service 呼叫 api
@@ -82,3 +82,17 @@ userService.mount(window);
 // window.$storeAPI.products.getAll();
 // 無 root name
 // window.$serviceAPI.products.getAll();
+
+const fn = async () => {
+    try {
+        const [promise, abort] = userService.products.getAll({ limit: 10, sort: "desc" });
+
+        const res = await promise;
+
+        if (res.status === 200) b.innerText = res.data;
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+fn();

@@ -131,7 +131,10 @@ export default class ServiceFactory {
 
             if (!api.name) throw new Error("Name is required");
 
-            Object.defineProperty(service, api.name, { value });
+            Object.defineProperty(service, api.name, {
+                value,
+                enumerable: true,
+            });
         }
     }
 
@@ -157,6 +160,7 @@ export default class ServiceFactory {
 
                 Object.defineProperty(service, name, {
                     value,
+                    enumerable: true,
                 });
             } else {
                 const value = this.#buildServiceTree({
@@ -167,6 +171,7 @@ export default class ServiceFactory {
 
                 Object.defineProperty(service, value._name as string, {
                     value,
+                    enumerable: true,
                 });
             }
         });

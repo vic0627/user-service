@@ -29,8 +29,7 @@ export default class Service {
             : "$" + this._name;
 
         Object.defineProperty(globalTarget, name, {
-            value: this,
-            enumerable: true,
+            value: this
         });
     }
 }
