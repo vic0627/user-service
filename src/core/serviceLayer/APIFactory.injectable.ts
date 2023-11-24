@@ -1,6 +1,7 @@
 import type { RequestConfig } from "src/types/xhr.type";
 import type {
     ApiConfig,
+    FinalApiConfig,
     ParameterDeclaration,
 } from "src/types/userService.type";
 import XHR from "../requestHandler/XHR.provider";
@@ -8,6 +9,8 @@ import Injectable from "src/decorator/Injectable.decorator";
 import RuleObject from "../validationEngine/RuleObject.injectable";
 import { deepClone, resolveURL } from "src/utils/common";
 import { Payload } from "src/types/ruleObject.type";
+import RuleError from "../validationEngine/RuleError";
+import CacheManager from "../cacheManager/CacheManager.provider";
 
 @Injectable()
 export default class APIFactory {
@@ -24,7 +27,8 @@ export default class APIFactory {
 
     constructor(
         private readonly ruleObject: RuleObject,
-        private readonly xhr: XHR
+        private readonly xhr: XHR,
+        private readonly cacheManager: CacheManager
     ) {
         this.#useAjaxStrategy();
     }
@@ -51,8 +55,22 @@ export default class APIFactory {
 
         const payloadTester = this.ruleObject.evaluate(rules);
 
-        return (payload: Payload = {}) => {
-            if (validation) payloadTester(payload);
+        return (payload: Payload = {}, requestConfig: FinalApiConfig = {}) => {
+            const { interceptors = {} } = requestConfig;
+            const { onBeforeValidation, onValidationFailed } = interceptors;
+
+            try {
+                if (typeof onBeforeValidation === "function")
+                    onBeforeValidation(payload, rules);
+
+                if (validation) payloadTester(payload);
+            } catch (error) {
+                if (typeof onValidationFailed === "function")
+                    onValidationFailed(error as RuleError);
+                else console.error(error);
+
+                return [() => {}, () => {}];
+            }
 
             const _url = this.#paramBuilder(
                 url as string,
@@ -64,6 +82,7 @@ export default class APIFactory {
             const ajax = this.#ajax?.request({
                 url: _url,
                 method,
+                payload,
                 auth,
                 headers,
                 headerMap,
@@ -74,14 +93,23 @@ export default class APIFactory {
 
             if (!ajax) throw new Error("Request failed");
 
-            const { requestToken, requestObject, abortController, config } =
-                ajax;
+            const { requestToken, request, abortController, config } = ajax;
 
-            return [requestObject, abortController, config];
+            let requestHandler = request;
+            if (requestConfig?.cache ?? cache)
+                requestHandler = this.cacheManager.subscribe(
+                    requestToken,
+                    request,
+                    payload
+                );
+
+            return [requestHandler, abortController];
         };
     }
 
-    #paramDeclarationDestructor(param?: ParameterDeclaration) {
+    #paramDeclarationDestructor(
+        param?: ParameterDeclaration
+    ): [param: string[], description: string[]] {
         if (!param) return [[], []];
 
         const isArray = Array.isArray(param);

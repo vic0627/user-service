@@ -47,9 +47,6 @@ export default {
      */
     
     api: {
-        /**
-         *
-        */
         name: "login",
         method: "POST",
         rules: {

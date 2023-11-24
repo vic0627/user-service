@@ -10,9 +10,10 @@ import XHR from "./requestHandler/XHR.provider";
 import ServiceFactory from "./serviceLayer/ServiceFactory.injectable";
 import APIFactory from "./serviceLayer/APIFactory.injectable";
 import { ServiceConfig } from "src/types/userService.type";
+import CacheManager from "./cacheManager/CacheManager.provider";
 
 @IOCContainer({
-    provides: [TypeLib, Byte, ByteConvertor, XHR],
+    provides: [TypeLib, Byte, ByteConvertor, XHR, CacheManager],
     imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory],
 })
 class Module {

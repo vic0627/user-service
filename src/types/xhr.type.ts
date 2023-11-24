@@ -68,14 +68,14 @@ export interface RequestConfig {
 }
 
 export interface PromiseExecutor {
-    resolve: (value: unknown) => void;
+    resolve: (value: HttpResponse) => void;
     reject: (reason?: any) => void;
     config?: RequestConfig;
 }
 
 export interface RequestDetail {
     requestToken: symbol;
-    requestObject: Promise<unknown>;
+    request: () => Promise<unknown> | undefined;
     abortController: () => void;
     config: RequestConfig;
 }

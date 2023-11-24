@@ -52,7 +52,7 @@ export default {
     /**
      * 可將最終返回的 API 重新命名
      */
-    // name: "product",
+    name: "products",
 
     /**
      * api 為根據同層的 route 上的方法，可為 object literal(單一方法) 或 array(多個方法)
@@ -70,6 +70,7 @@ export default {
             description: "Get all products",
             query: limitAndSortDescription,
             rules: productQueryRules,
+            cache: true,
         },
         /**
          * GET https://fakestoreapi.com/products/:id

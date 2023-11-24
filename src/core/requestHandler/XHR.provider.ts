@@ -28,16 +28,16 @@ export default class XHR implements RequestHandler {
 
         let xhr: XMLHttpRequest | null = new XMLHttpRequest();
 
+        /** 釋放 xhr 記憶體 */
         const cleanup = () => {
             xhr = null;
         };
 
-        /**
-         * 這個參數預計後面規劃給 cache manager 使用
-         */
-        const requestToken = symbolToken(url);
+        const _method = method.toUpperCase();
 
-        xhr.open(method, url, true);
+        const requestToken = symbolToken(_method + ":" + url);
+
+        xhr.open(_method, url, true);
 
         /**
          * 設置 xhr 的生命週期，返回：
@@ -55,11 +55,15 @@ export default class XHR implements RequestHandler {
         this.#setRequestHeader(xhr, headers);
         this.#setResType(xhr, responseType);
 
-        xhr.send((payload as XMLHttpRequestBodyInit) ?? null);
+        const request = () => {
+            if (xhr) xhr.send((payload as XMLHttpRequestBodyInit) ?? null);
+
+            return requestObject;
+        };
 
         return {
             requestToken,
-            requestObject,
+            request,
             abortController,
             config,
         };
@@ -111,19 +115,23 @@ export default class XHR implements RequestHandler {
             console.warn("Abort failed");
         };
 
-        const requestObject = new Promise((_resolve, _reject) => {
-            const resolve = (value: unknown) => {
+        const requestObject = new Promise<HttpResponse>((_resolve, _reject) => {
+            const resolve = (value: HttpResponse) => {
                 cleanup();
                 _resolve(value);
             };
             const reject = (reason?: unknown) => {
                 cleanup();
+
+                /** @todo 在發出請求前使用 abortController 會有 Uncaught Error 出現 */
                 _reject(reason);
             };
 
-            abortController = () => {
+            abortController = (reason?: unknown) => {
+                if (!xhr) return;
+
                 xhr.abort();
-                reject();
+                reject(reason);
             };
 
             const executor = { resolve, reject, config };

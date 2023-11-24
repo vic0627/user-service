@@ -46,12 +46,13 @@ export default class ServiceFactory {
 
         service._parent = parent;
         if (this.#root) service._name = name;
-        else service._name = name ?? route?.split("/")[0];
+        else service._name = name ?? this.#getFirstRoute(route);
+
+        if (!service._name) throw new Error("Name is required");
+
         // service._config = _serviceConfig;
 
         this.#buildAPI(service, reqConfig, api);
-
-        // if (service._name === "products") console.log(api);
 
         this.#buildChildren(service, children, nodeConfig);
 
@@ -113,6 +114,12 @@ export default class ServiceFactory {
         }
     }
 
+    #getFirstRoute(route?: string) {
+        if (!route) return;
+
+        return route.split("/")[0];
+    }
+
     #buildAPI(
         service: Service,
         defaultConfig: RequestConfig,
@@ -131,10 +138,7 @@ export default class ServiceFactory {
 
             if (!api.name) throw new Error("Name is required");
 
-            Object.defineProperty(service, api.name, {
-                value,
-                enumerable: true,
-            });
+            Object.defineProperty(service, api.name, { value });
         }
     }
 
@@ -160,7 +164,6 @@ export default class ServiceFactory {
 
                 Object.defineProperty(service, name, {
                     value,
-                    enumerable: true,
                 });
             } else {
                 const value = this.#buildServiceTree({
@@ -171,7 +174,6 @@ export default class ServiceFactory {
 
                 Object.defineProperty(service, value._name as string, {
                     value,
-                    enumerable: true,
                 });
             }
         });
@@ -197,7 +199,9 @@ export default class ServiceFactory {
         configCopy.url = url;
 
         const name =
-            (api as ApiConfig)?.name ?? child.name ?? route?.split("/")[0];
+            (api as ApiConfig)?.name ??
+            child.name ??
+            this.#getFirstRoute(route);
         if (!name)
             throw new Error(
                 "Name or route must required when defining single method"

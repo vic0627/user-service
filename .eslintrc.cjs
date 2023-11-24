@@ -14,6 +14,7 @@ module.exports = {
         "rollup.config.js",
         "dist",
         "public",
+        "example",
     ],
     rules: {
         semi: 2,
