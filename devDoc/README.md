@@ -140,3 +140,5 @@ globl.$service.exampleApi({
 >關於 JS class 私有屬性，可以參考[這裡](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_properties)
 
 ## testing branch protection
+
+git flow test
