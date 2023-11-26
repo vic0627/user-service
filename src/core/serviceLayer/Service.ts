@@ -12,7 +12,7 @@ export default class Service {
     constructor() {}
 
     mount(globalTarget: any) {
-        if (typeof globalTarget !== "object") {
+        if (typeof globalTarget !== "object" || globalTarget === null) {
             console.warn("Object required");
             return;
         }
@@ -29,7 +29,7 @@ export default class Service {
             : "$" + this._name;
 
         Object.defineProperty(globalTarget, name, {
-            value: this
+            value: this,
         });
     }
 }

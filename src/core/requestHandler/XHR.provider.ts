@@ -55,6 +55,10 @@ export default class XHR implements RequestHandler {
         this.#setRequestHeader(xhr, headers);
         this.#setResType(xhr, responseType);
 
+        /**
+         * 請求發送器
+         * @returns 網路請求的 Promise
+         */
         const request = () => {
             if (xhr) xhr.send((payload as XMLHttpRequestBodyInit) ?? null);
 
@@ -70,14 +74,29 @@ export default class XHR implements RequestHandler {
     }
 
     //#region private methods
+    /**
+     * 設置 timeout
+     * @param xhr XMLHttpRequest instance
+     * @param t 時間(ms)
+     */
     #setTimeout(xhr: XMLHttpRequest, t?: number) {
         xhr.timeout = t ?? 0;
     }
 
+    /**
+     * 設置響應類型
+     * @param xhr XMLHttpRequest instance
+     * @param resType 響應類型
+     */
     #setResType(xhr: XMLHttpRequest, resType?: XMLHttpRequestResponseType) {
         xhr.responseType = resType ?? "";
     }
 
+    /**
+     * 設置請求頭
+     * @param xhr XMLHttpRequest instance
+     * @param reqHeader 請求頭配置
+     */
     #setRequestHeader(xhr: XMLHttpRequest, reqHeader?: HeadersConfig) {
         const _headers = reqHeader ?? {};
 
@@ -90,9 +109,12 @@ export default class XHR implements RequestHandler {
         }
     }
 
-    #setAuthentication(xhr: XMLHttpRequest, a?: HttpAuthentication) {
-        const auth = a ?? ({} as HttpAuthentication);
-
+    /**
+     * 設置身分驗證
+     * @param xhr XMLHttpRequest instance
+     * @param a username 與 password
+     */
+    #setAuthentication(xhr: XMLHttpRequest, auth?: HttpAuthentication) {
         if (!auth) return;
 
         const username = auth?.username || "";
@@ -106,6 +128,13 @@ export default class XHR implements RequestHandler {
         );
     }
 
+    /**
+     * xhr 生命週期封裝、分配
+     * @param xhr XMLHttpRequest instance
+     * @param cleanup xhr 清除器
+     * @param config 請求配置
+     * @returns 請求的 Promise 物件與請求終止器
+     */
     #httpHooksEncapsulation(
         xhr: XMLHttpRequest,
         cleanup: () => void,
@@ -161,6 +190,14 @@ export default class XHR implements RequestHandler {
         return { requestObject, abortController };
     }
 
+    /**
+     * xhr 生命週期工廠
+     * @description 除了高階函式構成之外，最重要的就是 handler 的 this 綁定
+     * @param xhr XMLHttpRequest instance
+     * @param executor resolve, reject, and request config
+     * @param handler xhr 生命週期處理器
+     * @returns xhr 生命週期處理器(包裝過的)
+     */
     #handlerFactory(
         xhr: XMLHttpRequest,
         executor: PromiseExecutor,
