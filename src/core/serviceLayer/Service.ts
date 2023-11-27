@@ -1,4 +1,4 @@
-import { ParentConfig, ServiceConfig } from "src/types/userService.type";
+// import { ParentConfig, ServiceConfig } from "src/types/userService.type";
 import { notNull } from "src/utils/common";
 
 export default class Service {
@@ -14,11 +14,13 @@ export default class Service {
     mount(globalTarget: any) {
         if (typeof globalTarget !== "object" || globalTarget === null) {
             console.warn("Object required");
+
             return;
         }
 
         if (this._parent) {
             console.warn("Forbidden mount");
+
             return;
         }
 

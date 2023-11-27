@@ -34,8 +34,13 @@ export default class StringRule {
         const firstLimit = rot.indexOf(this.#limitSymbol);
         const lastLimit = rot.lastIndexOf(this.#limitSymbol);
 
-        if (firstLimit !== -1 && firstLimit === lastLimit) return true;
-        if (firstLimit === -1) return false;
+        if (firstLimit !== -1 && firstLimit === lastLimit) {
+            return true;
+        }
+
+        if (firstLimit === -1) {
+            return false;
+        }
 
         throw new SyntaxError(`Bad limitation syntax '${rot}'.`);
     }
@@ -55,8 +60,13 @@ export default class StringRule {
 
         const rightOrder = LBracketIdx < RBracketIdx;
 
-        if (hasValidLBracket && hasValidRBracket && rightOrder) return true;
-        if (LBracketIdx === -1 && RBracketIdx === -1) return false;
+        if (hasValidLBracket && hasValidRBracket && rightOrder) {
+            return true;
+        }
+
+        if (LBracketIdx === -1 && RBracketIdx === -1) {
+            return false;
+        }
 
         throw new SyntaxError(`Bad array syntax '${rot}'.`);
     }
@@ -65,14 +75,21 @@ export default class StringRule {
         const rangeIdx = rot.indexOf(this.#rangeSymbol);
         const rangeLastIdx = rot.lastIndexOf(this.#rangeSymbol);
 
-        if (rangeIdx !== -1 && rangeIdx === rangeLastIdx) return true;
-        if (rangeIdx === -1) return false;
+        if (rangeIdx !== -1 && rangeIdx === rangeLastIdx) {
+            return true;
+        }
+
+        if (rangeIdx === -1) {
+            return false;
+        }
 
         throw new SyntaxError(`Bad range syntax '${rot}'.`);
     }
 
     evaluate(rule: ValidRule) {
-        if (typeof rule === "string") return this.#evaluateRuleLiteral(rule);
+        if (typeof rule === "string") {
+            return this.#evaluateRuleLiteral(rule);
+        }
 
         if (typeof rule === "function") {
             const { valid, msg } = rule("test", null) ?? {};
@@ -81,18 +98,21 @@ export default class StringRule {
                 typeof valid !== "boolean" ||
                 (typeof msg !== "string" && msg !== null);
 
-            if (invalidRule) throw new Error("Invalid validator function.");
+            if (invalidRule) {
+                throw new Error("Invalid validator function.");
+            }
 
             return rule;
         }
 
-        if (rule instanceof RegExp)
+        if (rule instanceof RegExp) {
             return (param: string, value: unknown) => {
                 const valid = rule.test(value as string);
                 const msg = `Parameter '${param}' does not conform to the regular expression '${rule}'.`;
 
                 return { valid, msg };
             };
+        }
 
         throw new Error(`Invalid rule '${String(rule)}'.`);
     }
@@ -109,8 +129,9 @@ export default class StringRule {
         rot = rot.replaceAll(" ", "");
         rot = rot.toLowerCase();
 
-        if (this.isPureType(rot))
+        if (this.isPureType(rot)) {
             return this.#validatorGenerator({ type: rot });
+        }
 
         return this.#arrayPipe(rot);
     }
@@ -119,7 +140,9 @@ export default class StringRule {
         /**
          * 1. Pass rot to limitation factory if it does not include array syntax.
          */
-        if (!this.hasArray(rot)) return this.#limitationPipe(rot);
+        if (!this.hasArray(rot)) {
+            return this.#limitationPipe(rot);
+        }
 
         /**
          * 2. Destructure array syntax and pass the rest of the rot and information of array limitation to limitation factory.
@@ -143,31 +166,41 @@ export default class StringRule {
 
             const badSyntax = isNaN(min) || isNaN(max) || lackOfValue;
 
-            if (badSyntax)
+            if (badSyntax) {
                 throw new SyntaxError(
                     `Unexpected limitation of array '${arrLimit}'.`
                 );
+            }
 
-            if (!noMin || min || min === 0) arrayOptions.min = min;
-            if (!noMax || max || max === 0) arrayOptions.max = max;
+            if (!noMin || min || min === 0) {
+                arrayOptions.min = min;
+            }
+
+            if (!noMax || max || max === 0) {
+                arrayOptions.max = max;
+            }
         } else if (!isNaN(+arrLimit)) {
             arrayOptions.equal = +arrLimit;
-        } else if (arrLimit !== "")
+        } else if (arrLimit !== "") {
             throw new SyntaxError("Bad array limitation.");
+        }
 
         return this.#limitationPipe(_rot, arrayOptions);
     }
 
     #limitationPipe(rot: RuleLiteral, arrayOptions?: Limitation) {
-        if (!this.hasLimitation(rot)) throw new SyntaxError("Bad rot syntax.");
+        if (!this.hasLimitation(rot)) {
+            throw new SyntaxError("Bad rot syntax.");
+        }
 
         /**
          * 1. Destructure type syntax and its limitation
          */
         const [type, limitation] = rot.split(this.#limitSymbol);
 
-        if (!this.isPureType(type))
+        if (!this.isPureType(type)) {
             throw new SyntaxError(`Unexpected type '${type}'.`);
+        }
 
         const typeInfo = this.typeLib.get(type) as TypeMetadata;
 
@@ -180,7 +213,9 @@ export default class StringRule {
         ) => {
             const invalidLimit = !(limitValue || limitValue === 0);
 
-            if (invalidLimit) return;
+            if (invalidLimit) {
+                return;
+            }
 
             target[targetKey] = limitValue;
         };
@@ -199,16 +234,22 @@ export default class StringRule {
             configLimitation(arrayLimitation, "max", max);
             configLimitation(arrayLimitation, "equal", equal);
 
-            if (Object.keys(arrayLimitation).length)
+            if (Object.keys(arrayLimitation).length) {
                 result.arrayLimitation = arrayLimitation;
+            }
         }
 
-        if (!limitation) return this.#validatorGenerator(result);
-        else result.limitation = true;
+        if (!limitation) {
+            return this.#validatorGenerator(result);
+        } else {
+            result.limitation = true;
+        }
 
         const { countable, allowBytes } = typeInfo;
 
-        if (!countable) throw new SyntaxError(`Type '${type}' is uncountable.`);
+        if (!countable) {
+            throw new SyntaxError(`Type '${type}' is uncountable.`);
+        }
 
         const hasRange = this.hasRange(limitation);
 
@@ -228,20 +269,22 @@ export default class StringRule {
             const noMax = validLimit(max);
             const lackOfValue = noMin && noMax;
 
-            if (lackOfValue)
+            if (lackOfValue) {
                 throw new SyntaxError(
                     `Unexpected limitation of type '${rot}'.`
                 );
+            }
 
             const illegalByte =
                 !allowBytes &&
                 (this.byteConvertor.hasByteUnit(min) ||
                     this.byteConvertor.hasByteUnit(max));
 
-            if (illegalByte)
+            if (illegalByte) {
                 throw new SyntaxError(
                     `Type '${type}' cannot be measured in byte unit.`
                 );
+            }
 
             min = noMin ? undefined : this.byteConvertor.toNumber(min);
             max = noMax ? undefined : this.byteConvertor.toNumber(max);
@@ -252,10 +295,11 @@ export default class StringRule {
             const illegalByte =
                 !allowBytes && this.byteConvertor.hasByteUnit(limitation);
 
-            if (illegalByte)
+            if (illegalByte) {
                 throw new SyntaxError(
                     `Type '${type}' cannot be measured in byte unit.`
                 );
+            }
 
             const equal = this.byteConvertor.toNumber(limitation);
 
@@ -264,8 +308,9 @@ export default class StringRule {
             configLimitation(typeLimitation, "equal", equal);
         }
 
-        if (Object.keys(typeLimitation).length)
+        if (Object.keys(typeLimitation).length) {
             result.typeLimitation = typeLimitation;
+        }
 
         // console.log({ result });
 
@@ -287,12 +332,14 @@ export default class StringRule {
         const subValidator: RuleValidator = (param, value) => {
             const typeExam = test(value);
 
-            if (!typeExam)
+            if (!typeExam) {
                 return {
                     valid: false,
                     msg: `Parameter '${param}' must be in type '${_type}'.`,
                 };
-            else if (!limitation) return { valid: true, msg: null };
+            } else if (!limitation) {
+                return { valid: true, msg: null };
+            }
 
             const msg = measureUnit
                 ? `The ${measureUnit} of parameter '${param}' must be `
@@ -309,7 +356,9 @@ export default class StringRule {
         };
 
         const validator: RuleValidator = (param, value) => {
-            if (!hasArray) return subValidator(param, value);
+            if (!hasArray) {
+                return subValidator(param, value);
+            }
 
             const _value = value as unknown[];
 
@@ -321,12 +370,15 @@ export default class StringRule {
                     `The length of '${param}' array must be `
                 );
 
-                if (!arrayExam.valid) return arrayExam;
+                if (!arrayExam.valid) {
+                    return arrayExam;
+                }
             }
 
             for (const key in _value) {
-                if (!Object.prototype.hasOwnProperty.call(_value, key))
+                if (!Object.prototype.hasOwnProperty.call(_value, key)) {
                     continue;
+                }
 
                 const value = _value[key];
 
@@ -338,7 +390,9 @@ export default class StringRule {
 
                 const typeExam = subValidator(_param, value);
 
-                if (!typeExam.valid) return typeExam;
+                if (!typeExam.valid) {
+                    return typeExam;
+                }
             }
 
             return { valid: true, msg: null } as RuleErrorOption;

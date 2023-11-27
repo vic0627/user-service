@@ -27,13 +27,19 @@ export default class TypeLib {
     defineType(type: string, validator: TypeValidator) {
         const res = validator(null);
 
-        if (typeof type !== "string")
+        if (typeof type !== "string") {
             throw new TypeError(`Invalid type '${typeof type}' for 'type'`);
-        if (!pureLowerCase(type)) throw new SyntaxError("Bad syntax");
-        if (typeof res !== "boolean")
+        }
+
+        if (!pureLowerCase(type)) {
+            throw new SyntaxError("Bad syntax");
+        }
+
+        if (typeof res !== "boolean") {
             throw new TypeError(
                 "Type validator must return boolean value in any case"
             );
+        }
 
         this.#add(type as BasicType, false, null, false, null, validator);
 

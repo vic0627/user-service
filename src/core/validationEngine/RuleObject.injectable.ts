@@ -24,7 +24,9 @@ export default class RuleObject {
     ) {}
 
     evaluate(rule?: RuleObjectInterface) {
-        if (!notNull(rule)) return () => {};
+        if (!notNull(rule)) {
+            return () => {};
+        }
 
         const { ruleLib, required } = this.#evaluateRules(
             rule as RuleObjectInterface
@@ -32,12 +34,15 @@ export default class RuleObject {
 
         return (payload: Payload) => {
             required.forEach((key) => {
-                if (!(key in payload))
+                if (!(key in payload)) {
                     throw new RuleError(`Parameter '${key}' is required`);
+                }
             });
 
             this.#traverseObject(payload, (key, value) => {
-                if (!(key in ruleLib)) return;
+                if (!(key in ruleLib)) {
+                    return;
+                }
 
                 const validator = ruleLib[key];
 
@@ -55,18 +60,23 @@ export default class RuleObject {
         this.#traverseObject(rule, (key, value) => {
             const optional = this.isOptionalParam(key);
 
-            if (optional) key = key.slice(1);
-            else required.push(key);
+            if (optional) {
+                key = key.slice(1);
+            } else {
+                required.push(key);
+            }
 
             let validator: RuleValidator | undefined;
 
-            if (typeof value === "symbol")
+            if (typeof value === "symbol") {
                 validator = this.ruleArray.find(value).executor;
-            else if (Array.isArray(value)) {
+            } else if (Array.isArray(value)) {
                 const token = this.ruleArray.defineUnion(...value);
 
                 validator = this.ruleArray.find(token).executor;
-            } else validator = this.stringRule.evaluate(value as ValidRule);
+            } else {
+                validator = this.stringRule.evaluate(value as ValidRule);
+            }
 
             Object.defineProperty(ruleLib, key, {
                 value: (param: string, value: unknown) => {
@@ -75,8 +85,9 @@ export default class RuleObject {
                         value
                     );
 
-                    if (!valid)
+                    if (!valid) {
                         throw new RuleError(msg ?? "Undefind rule error");
+                    }
                 },
             });
         });
@@ -130,7 +141,10 @@ export default class RuleObject {
             () => false,
             (key) => key,
             (key) => {
-                if (this.isOptionalParam(key)) key = key.slice(1);
+                if (this.isOptionalParam(key)) {
+                    key = key.slice(1);
+                }
+
                 return args.includes(key);
             }
         );
@@ -145,7 +159,10 @@ export default class RuleObject {
             () => false,
             (key) => key,
             (key) => {
-                if (this.isOptionalParam(key)) key = key.slice(1);
+                if (this.isOptionalParam(key)) {
+                    key = key.slice(1);
+                }
+
                 return !args.includes(key);
             }
         );
@@ -160,13 +177,16 @@ export default class RuleObject {
         const newRules: RuleObjectInterface = {};
 
         this.#traverseObject(target, (key, value) => {
-            if (canModifyKey(key)) key = modifyKeyCallback(key);
+            if (canModifyKey(key)) {
+                key = modifyKeyCallback(key);
+            }
 
-            if (canDefineProp(key))
+            if (canDefineProp(key)) {
                 Object.defineProperty(newRules, key, {
                     value,
                     enumerable: true,
                 });
+            }
         });
 
         return newRules;
@@ -176,12 +196,16 @@ export default class RuleObject {
         o: RuleObjectInterface | Payload,
         callback: (key: string, value: ObjectRules | unknown) => void
     ) {
-        if (typeof o !== "object" || o === null || Array.isArray(o))
+        if (typeof o !== "object" || o === null || Array.isArray(o)) {
             throw new TypeError("Only object literal is accepted");
+        }
 
         for (const key in o) {
             const hasProp = Object.prototype.hasOwnProperty.call(o, key);
-            if (!hasProp) continue;
+
+            if (!hasProp) {
+                continue;
+            }
 
             callback(key, o[key]);
         }

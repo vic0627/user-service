@@ -27,7 +27,9 @@ export class Byte {
     #byteStr: ByteLib | undefined;
 
     get bytesString(): ByteLib {
-        if (this.#byteStr) return this.#byteStr;
+        if (this.#byteStr) {
+            return this.#byteStr;
+        }
 
         const str: ByteLib | Record<string, string> = {};
 
@@ -51,19 +53,25 @@ export class ByteConvertor extends Byte {
     }
 
     hasByteUnit(value: string) {
-        if (!isNaN(+value)) return false;
+        if (!isNaN(+value)) {
+            return false;
+        }
 
         return this.byteUnits.reduce((pre, cur) => {
-            if (pre) return pre;
+            if (pre) {
+                return pre;
+            }
 
             const exam = value.endsWith(cur);
 
             if (exam && cur !== this.bytesString.b) {
                 const n = value.replace(cur, "");
-                console.log({ n });
 
-                if (isNaN(+n))
+                // console.log({ n });
+
+                if (isNaN(+n)) {
                     throw new SyntaxError(`Bad byte syntax '${value}'.`);
+                }
             }
 
             return exam;
@@ -71,7 +79,9 @@ export class ByteConvertor extends Byte {
     }
 
     toNumber(value: string) {
-        if (this.hasByteUnit(value)) return this.#unitToBytes(value);
+        if (this.hasByteUnit(value)) {
+            return this.#unitToBytes(value);
+        }
 
         return +value;
     }
@@ -86,7 +96,9 @@ export class ByteConvertor extends Byte {
      * @returns unit
      */
     #bytesToUnit(bytes: NumOrString): ByteString {
-        if (isNaN(+bytes)) throw new Error(`Invalid bytes '${bytes}' provided`);
+        if (isNaN(+bytes)) {
+            throw new Error(`Invalid bytes '${bytes}' provided`);
+        }
 
         bytes = +bytes;
 
@@ -119,7 +131,9 @@ export class ByteConvertor extends Byte {
     #unitToBytes(unit: ByteString | ByteUnit | string): number {
         const numericValue = parseFloat(unit);
 
-        if (numericValue < 0) throw new Error("Invalid negative value.");
+        if (numericValue < 0) {
+            throw new Error("Invalid negative value.");
+        }
 
         const unitChar: string = unit.replace(numericValue + "", "");
 

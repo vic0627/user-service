@@ -45,10 +45,16 @@ export default class ServiceFactory {
         const service = new Service();
 
         service._parent = parent;
-        if (this.#root) service._name = name;
-        else service._name = name ?? this.#getFirstRoute(route);
 
-        if (!service._name) throw new Error("Name is required");
+        if (this.#root) {
+            service._name = name;
+        } else {
+            service._name = name ?? this.#getFirstRoute(route);
+        }
+
+        if (!service._name) {
+            throw new Error("Name is required");
+        }
 
         // service._config = _serviceConfig;
 
@@ -74,8 +80,12 @@ export default class ServiceFactory {
         } = serviceConfig;
 
         let _baseURL: string;
-        if (baseURL && route) _baseURL = resolveURL([baseURL, route]);
-        else _baseURL = baseURL as string;
+
+        if (baseURL && route) {
+            _baseURL = resolveURL([baseURL, route]);
+        } else {
+            _baseURL = baseURL as string;
+        }
 
         const basicConfig = {
             validation,
@@ -103,19 +113,26 @@ export default class ServiceFactory {
 
     #routeGuard(baseURL?: string, route?: string) {
         if (this.#root) {
-            if (!baseURL || typeof baseURL !== "string")
+            if (!baseURL || typeof baseURL !== "string") {
                 throw new Error("BaseURL is required in root service");
+            }
+
             this.#root = false;
         } else {
-            if (!route || typeof route !== "string")
+            if (!route || typeof route !== "string") {
                 throw new Error("Route is required in children service");
-            if (baseURL)
+            }
+
+            if (baseURL) {
                 throw new Error("BaseURL is only configurable in root service");
+            }
         }
     }
 
     #getFirstRoute(route?: string) {
-        if (!route) return;
+        if (!route) {
+            return;
+        }
 
         return route.split("/")[0];
     }
@@ -129,14 +146,18 @@ export default class ServiceFactory {
             api.forEach((config) => {
                 const value = this.apiFactory.createAPI(config, defaultConfig);
 
-                if (!config.name) throw new Error("Name is required");
+                if (!config.name) {
+                    throw new Error("Name is required");
+                }
 
                 Object.defineProperty(service, config.name, { value });
             });
         } else if (typeof api === "object") {
             const value = this.apiFactory.createAPI(api, defaultConfig);
 
-            if (!api.name) throw new Error("Name is required");
+            if (!api.name) {
+                throw new Error("Name is required");
+            }
 
             Object.defineProperty(service, api.name, { value });
         }
@@ -147,10 +168,15 @@ export default class ServiceFactory {
         children?: ServiceConfig[],
         parentConfig?: ParentConfig
     ) {
-        if (!notNull(children)) return;
+        if (!notNull(children)) {
+            return;
+        }
 
         const isArray = Array.isArray(children);
-        if (!isArray) throw new Error("Children must be an array");
+
+        if (!isArray) {
+            throw new Error("Children must be an array");
+        }
 
         const singleMethod = (children: ServiceConfig) =>
             !children?.children && !Array.isArray(children?.api);
@@ -202,10 +228,12 @@ export default class ServiceFactory {
             (api as ApiConfig)?.name ??
             child.name ??
             this.#getFirstRoute(route);
-        if (!name)
+
+        if (!name) {
             throw new Error(
                 "Name or route must required when defining single method"
             );
+        }
 
         const value = this.apiFactory.createAPI(api as ApiConfig, configCopy);
 

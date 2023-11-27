@@ -60,7 +60,9 @@ export default class XHR implements RequestHandler {
          * @returns 網路請求的 Promise
          */
         const request = () => {
-            if (xhr) xhr.send((payload as XMLHttpRequestBodyInit) ?? null);
+            if (xhr) {
+                xhr.send((payload as XMLHttpRequestBodyInit) ?? null);
+            }
 
             return requestObject;
         };
@@ -101,7 +103,9 @@ export default class XHR implements RequestHandler {
         const _headers = reqHeader ?? {};
 
         for (const key in _headers) {
-            if (!Object.prototype.hasOwnProperty.call(_headers, key)) continue;
+            if (!Object.prototype.hasOwnProperty.call(_headers, key)) {
+                continue;
+            }
 
             const value = _headers[key as keyof HeadersConfig] as string;
 
@@ -109,13 +113,12 @@ export default class XHR implements RequestHandler {
         }
     }
 
-    /**
-     * 設置身分驗證
-     * @param xhr XMLHttpRequest instance
-     * @param a username 與 password
-     */
-    #setAuthentication(xhr: XMLHttpRequest, auth?: HttpAuthentication) {
-        if (!auth) return;
+    #setAuthentication(xhr: XMLHttpRequest, a?: HttpAuthentication) {
+        const auth = a ?? ({} as HttpAuthentication);
+
+        if (!auth) {
+            return;
+        }
 
         const username = auth?.username || "";
         const password = auth?.password
@@ -149,6 +152,7 @@ export default class XHR implements RequestHandler {
                 cleanup();
                 _resolve(value);
             };
+
             const reject = (reason?: unknown) => {
                 cleanup();
 
@@ -157,7 +161,9 @@ export default class XHR implements RequestHandler {
             };
 
             abortController = (reason?: unknown) => {
-                if (!xhr) return;
+                if (!xhr) {
+                    return;
+                }
 
                 xhr.abort();
                 reject(reason);
@@ -216,7 +222,9 @@ export default class XHR implements RequestHandler {
         xhr: XMLHttpRequest,
         { reject }: PromiseExecutor
     ) {
-        if (!xhr) return;
+        if (!xhr) {
+            return;
+        }
 
         reject(new RequestError("Request aborted"));
     }
@@ -226,7 +234,9 @@ export default class XHR implements RequestHandler {
         xhr: XMLHttpRequest,
         { reject, config }: PromiseExecutor
     ) {
-        if (!xhr) return;
+        if (!xhr) {
+            return;
+        }
 
         const { timeout, timeoutErrorMessage } = config ?? {};
 
@@ -243,7 +253,9 @@ export default class XHR implements RequestHandler {
         xhr: XMLHttpRequest,
         { reject, config }: PromiseExecutor
     ) {
-        if (!xhr) return;
+        if (!xhr) {
+            return;
+        }
 
         const { url } = config ?? {};
         const { status } = xhr;
@@ -256,7 +268,9 @@ export default class XHR implements RequestHandler {
         xhr: XMLHttpRequest,
         { resolve, config }: PromiseExecutor
     ) {
-        if (!xhr) return;
+        if (!xhr) {
+            return;
+        }
 
         const { responseType, response, responseText, status, statusText } =
             xhr;
@@ -268,8 +282,10 @@ export default class XHR implements RequestHandler {
 
         let headers: string | Record<string, string> =
             xhr.getAllResponseHeaders();
-        if (typeof headers === "string" && config?.headerMap)
+
+        if (typeof headers === "string" && config?.headerMap) {
             headers = this.#getHeaderMap(headers);
+        }
 
         const res: HttpResponse = {
             data,
@@ -293,7 +309,9 @@ export default class XHR implements RequestHandler {
             const header = parts.shift();
             const value = parts.join(": ");
 
-            if (header) Object.defineProperty(headerMap, header, { value });
+            if (header) {
+                Object.defineProperty(headerMap, header, { value });
+            }
         });
 
         return headerMap;

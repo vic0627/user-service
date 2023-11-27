@@ -14,8 +14,9 @@ export default class CacheManager {
             if (this.#has(requestToken)) {
                 const cache = this.#get(requestToken) as CacheData;
 
-                if (this.#samePayload(payload, cache?.payload))
+                if (this.#samePayload(payload, cache?.payload)) {
                     return cache.res;
+                }
             }
 
             const res = await request();
@@ -45,17 +46,22 @@ export default class CacheManager {
     }
 
     #samePayload<T extends Payload>(obj1: T, obj2: T) {
-        if (typeof obj1 !== typeof obj2) return false;
+        if (typeof obj1 !== typeof obj2) {
+            return false;
+        }
 
         if (typeof obj1 === "object") {
             const keys1 = Object.keys(obj1);
             const keys2 = Object.keys(obj2);
 
-            if (keys1.length !== keys2.length) return false;
+            if (keys1.length !== keys2.length) {
+                return false;
+            }
 
             for (const key of keys1) {
-                if (!this.#samePayload(obj1[key] as T, obj2[key] as T))
+                if (!this.#samePayload(obj1[key] as T, obj2[key] as T)) {
                     return false;
+                }
             }
 
             return true;

@@ -18,6 +18,31 @@ module.exports = {
     ],
     rules: {
         semi: 2,
+        curly: 2,
+        quotes: [2, "double"],
+        "no-console": [
+            2,
+            { allow: ["warn", "error", "table", "group", "groupEnd"] },
+        ],
+        "no-var": 2,
+        "padding-line-between-statements": [
+            2,
+            {
+                blankLine: "always",
+                prev: ["let", "const", "expression"],
+                next: ["block-like", "block"],
+            },
+            {
+                blankLine: "always",
+                prev: ["block-like", "block"],
+                next: "*",
+            },
+            {
+                blankLine: "always",
+                prev: "expression",
+                next: ["return", "throw"],
+            },
+        ],
         "@typescript-eslint/ban-types": 0,
         "@typescript-eslint/no-explicit-any": 1,
         "@typescript-eslint/no-unused-vars": 1,
