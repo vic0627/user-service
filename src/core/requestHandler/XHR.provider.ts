@@ -113,16 +113,21 @@ export default class XHR implements RequestHandler {
         }
     }
 
-    #setAuthentication(xhr: XMLHttpRequest, a?: HttpAuthentication) {
-        const auth = a ?? ({} as HttpAuthentication);
+    /**
+     * 設置身分驗證標頭(Authorization)
+     * @param xhr XMLHttpRequest instance
+     * @param auth username and password
+     */
+    #setAuthentication(xhr: XMLHttpRequest, auth?: HttpAuthentication) {
+        const _auth = auth ?? ({} as HttpAuthentication);
 
-        if (!auth) {
+        if (!_auth) {
             return;
         }
 
-        const username = auth?.username || "";
-        const password = auth?.password
-            ? decodeURIComponent(encodeURIComponent(auth.password))
+        const username = _auth?.username || "";
+        const password = _auth?.password
+            ? decodeURIComponent(encodeURIComponent(_auth.password))
             : "";
 
         xhr.setRequestHeader(
@@ -143,10 +148,13 @@ export default class XHR implements RequestHandler {
         cleanup: () => void,
         config: RequestConfig
     ) {
+        /** 取消請求控制器 */
         let abortController: () => void = () => {
+            // 預設為取消失敗的警語
             console.warn("Abort failed");
         };
 
+        /** 回傳結果的 Promise */
         const requestObject = new Promise<HttpResponse>((_resolve, _reject) => {
             const resolve = (value: HttpResponse) => {
                 cleanup();
@@ -299,6 +307,10 @@ export default class XHR implements RequestHandler {
         resolve(res);
     }
 
+    /**
+     * 將 res header 轉換成 object literal 格式
+     * @param headers response header
+     */
     #getHeaderMap(headers: string) {
         const arr = headers.trim().split(/[\r\n]+/);
 

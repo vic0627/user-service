@@ -4,12 +4,12 @@ const { mergeRules, partialRules } = us;
 /** 以下為參數名稱及敘述 */
 
 const limitAndSortDescription = {
-    limit: "Limit results. No default value, and value >= 1.",
-    sort: "Sort results. Default value is in ascending mode, you can use with 'desc' or 'asc' as you want.",
+    limit: "回傳商品數量限制，正整數",
+    sort: "排序方式，預設升冪排列",
 };
 
 const idDescription = {
-    id: "Identify number of product, and value >= 1.",
+    id: "商品 id，正整數",
 };
 
 /** 以下為驗證規則物件 */
@@ -24,6 +24,14 @@ const productRules = {
     description: "string@1:100", // 長度 >= 1 且 <= 100 的字串
     image: "file@:5mb", // <= 5mb 的 File 物件
     category: "string", // 字串
+};
+
+const productDescription = {
+    title: "商品標題",
+    price: "商品價格",
+    description: "商品描述",
+    image: "商品圖片",
+    category: "商品分類",
 };
 
 const productQueryRules = {
@@ -52,7 +60,10 @@ export default {
     /**
      * 可將最終返回的 API 重新命名
      */
-    name: "products",
+    // name: "products",
+
+    description:
+        "獲取虛擬商店中的所有商品數據，包括商品名稱、價格、描述等詳細信息。",
 
     /**
      * api 為根據同層的 route 上的方法，可為 object literal(單一方法) 或 array(多個方法)
@@ -67,9 +78,9 @@ export default {
          */
         {
             name: "getAll",
-            description: "Get all products",
+            description: "取得所有商品訊息。",
             query: limitAndSortDescription,
-            rules: productQueryRules,
+            rules: partialRules(productQueryRules),
             cache: true,
         },
         /**
@@ -80,7 +91,7 @@ export default {
          */
         {
             name: "getById",
-            description: "Get a single product by id",
+            description: "依 id 取得單項商品訊息。",
             param: idDescription,
             rules: productIdRule,
         },
@@ -92,7 +103,7 @@ export default {
          */
         {
             name: "create",
-            description: "Add new product",
+            description: "新增商品。",
             method: "POST",
             rules: productRules,
         },
@@ -104,7 +115,7 @@ export default {
          */
         {
             name: "update",
-            description: "Update a product's information",
+            description: "更新商品資訊(整體)。",
             method: "PUT",
             param: idDescription,
             rules: mergeRules(productRules, productIdRule),
@@ -117,7 +128,7 @@ export default {
          */
         {
             name: "modify",
-            description: "Update a product's information partially",
+            description: "更新商品資訊(局部)。",
             method: "PATCH",
             param: idDescription,
             rules: mergeRules(partialRules(productRules), productIdRule),
@@ -130,7 +141,7 @@ export default {
          */
         {
             name: "delete",
-            description: "Delete a product by id",
+            description: "依 id 刪除商品",
             method: "DELETE",
             param: idDescription,
             rules: productIdRule,
@@ -152,14 +163,14 @@ export default {
              */
             route: "categories",
             name: "getCategories",
-            description: "Get all categories",
+            description: "取得所有商品種類。",
             /** 若設定 cache(預設 false)，重複請求時若無參數變動將會返回上次所記錄的值 */
             cache: true,
         },
         {
             route: "category",
             name: "getProductsIn",
-            description: "Get all products in specific category",
+            description: "取得特定種類所有商品。",
 
             /** 使用物件作為參數，默認此路徑只有一個方法 */
             api: {
@@ -167,9 +178,9 @@ export default {
                  * GET https://fakestoreapi.com/products/category?limit=<LIMIT>&sort=<SORT>
                  *
                  * @example
-                 * $storeAPI.products.getProductsIn({ limit?, sort? })
+                 * $storeAPI.products.getProductsIn({ limit?, sort?, category })
                  */
-                param: { category: "Name of the category" },
+                param: { category: "商品分類" },
                 query: limitAndSortDescription,
                 rules: mergeRules(productQueryRules, { category: "string" }),
                 cache: true,

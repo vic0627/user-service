@@ -17,7 +17,8 @@ const service = {
     name: "storeAPI",
 
     /** 服務描述 */
-    description: "我的商店",
+    description:
+        "FakeStoreAPI 是一個提供虛擬商店數據的開發者友好的公開 API。這個 API 提供了各種模擬真實電商環境中所需的端點，包括商品、購物車、訂單等，以方便開發者測試和開發電商相關的應用程式。",
 
     /** 啟用參數驗證 */
     validation: true,

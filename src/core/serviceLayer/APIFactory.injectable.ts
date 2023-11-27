@@ -16,6 +16,9 @@ import CacheManager from "../cacheManager/CacheManager.provider";
 export default class APIFactory {
     #ajax?: XHR;
 
+    /**
+     * 初始化網路請求 strategy
+     */
     #useAjaxStrategy() {
         if (typeof XMLHttpRequest !== "undefined") {
             this.#ajax = this.xhr;
