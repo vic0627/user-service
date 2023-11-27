@@ -36,7 +36,9 @@ export default class RuleArray {
     find(token: symbol) {
         const queueObj = this.#queue.get(token);
 
-        if (!queueObj) throw new Error("No such rule array has been found.");
+        if (!queueObj) {
+            throw new Error("No such rule array has been found.");
+        }
 
         const { type, rules } = queueObj;
 
@@ -51,8 +53,9 @@ export default class RuleArray {
     #define(type: RuleArrayType, rules: ValidRule[]) {
         const token = symbolToken(rules.toString());
 
-        if (this.#queue.has(token))
+        if (this.#queue.has(token)) {
             throw new Error(`Duplicate ${type} array detected.`);
+        }
 
         const _rules = this.#evaluate(rules) as RuleValidator[];
 
@@ -77,6 +80,7 @@ export default class RuleArray {
          * @todo record correct msg according to the type of the value
          */
         let record = false;
+
         for (const i in rules) {
             const validator = rules[i];
             const { valid, msg } = validator(param, value);
@@ -90,17 +94,23 @@ export default class RuleArray {
                     record = true;
                 }
 
-                if (valid) break;
+                if (valid) {
+                    break;
+                }
             }
 
             if (intersection) {
                 exam = { valid, msg };
 
-                if (!valid) break;
+                if (!valid) {
+                    break;
+                }
             }
         }
 
-        if (exam) return exam;
+        if (exam) {
+            return exam;
+        }
 
         throw new Error(
             "Validation progress failed in unexpected circumstance."

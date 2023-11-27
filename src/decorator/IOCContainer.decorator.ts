@@ -74,6 +74,7 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
                 const deps: {}[] = [];
 
                 let stop = false;
+
                 for (const token of requirements) {
                     const dep = instances.get(token) as {} | undefined;
 
@@ -85,13 +86,18 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
                     deps.push(dep);
                 }
 
-                if (stop) return;
+                if (stop) {
+                    return;
+                }
 
                 const value = new constructor(...(deps || []));
 
                 const expose = (Reflect.getMetadata(META_EXPOSE, constructor) ??
                     "") as string;
-                if (expose) exposeModules.set(expose, value);
+
+                if (expose) {
+                    exposeModules.set(expose, value);
+                }
 
                 instances.set(token, value);
 
@@ -118,7 +124,9 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
                 const injections = targetDepToken.map((token: symbol) => {
                     const dep = instances.get(token);
 
-                    if (dep) return dep;
+                    if (dep) {
+                        return dep;
+                    }
 
                     throw new Error("Missing dependency.");
                 });

@@ -1,5 +1,9 @@
 # User Service
 
+> 為前端(後端適用 node js)與 API 之間的抽象層，優化和簡化前端開發中與 API 交互的複雜性。
+
+開發相關文件請見：[devDoc](./devDoc/README.md)
+
 ## Features
 
 1. **結構化**： 使用巢狀結構配置和路由封裝，有助於在 API 配置中組織和管理多層次的資源。

@@ -17,12 +17,15 @@ export default class APIFactory {
     #ajax?: XHR;
 
     #useAjaxStrategy() {
-        if (typeof XMLHttpRequest !== "undefined") this.#ajax = this.xhr;
+        if (typeof XMLHttpRequest !== "undefined") {
+            this.#ajax = this.xhr;
+        }
 
-        if (!this.#ajax)
+        if (!this.#ajax) {
             throw new Error(
                 "User Service is only support in browser environment"
             );
+        }
     }
 
     constructor(
@@ -60,14 +63,19 @@ export default class APIFactory {
             const { onBeforeValidation, onValidationFailed } = interceptors;
 
             try {
-                if (typeof onBeforeValidation === "function")
+                if (typeof onBeforeValidation === "function") {
                     onBeforeValidation(payload, rules);
+                }
 
-                if (validation) payloadTester(payload);
+                if (validation) {
+                    payloadTester(payload);
+                }
             } catch (error) {
-                if (typeof onValidationFailed === "function")
+                if (typeof onValidationFailed === "function") {
                     onValidationFailed(error as RuleError);
-                else console.error(error);
+                } else {
+                    console.error(error);
+                }
 
                 return [() => {}, () => {}];
             }
@@ -91,17 +99,21 @@ export default class APIFactory {
                 responseType,
             });
 
-            if (!ajax) throw new Error("Request failed");
+            if (!ajax) {
+                throw new Error("Request failed");
+            }
 
             const { requestToken, request, abortController, config } = ajax;
 
             let requestHandler = request;
-            if (requestConfig?.cache ?? cache)
+
+            if (requestConfig?.cache ?? cache) {
                 requestHandler = this.cacheManager.subscribe(
                     requestToken,
                     request,
                     payload
                 );
+            }
 
             return [requestHandler, abortController];
         };
@@ -110,7 +122,9 @@ export default class APIFactory {
     #paramDeclarationDestructor(
         param?: ParameterDeclaration
     ): [param: string[], description: string[]] {
-        if (!param) return [[], []];
+        if (!param) {
+            return [[], []];
+        }
 
         const isArray = Array.isArray(param);
 
@@ -135,7 +149,9 @@ export default class APIFactory {
         param?: ParameterDeclaration,
         query?: ParameterDeclaration
     ) {
-        if (typeof payload !== "object" || payload === null) return;
+        if (typeof payload !== "object" || payload === null) {
+            return;
+        }
 
         const [paramKeys, paramDescription] =
             this.#paramDeclarationDestructor(param);
@@ -147,13 +163,17 @@ export default class APIFactory {
             callback: (key: string, value: string | number) => void
         ) => {
             o.forEach((key) => {
-                if (!(key in payload)) return;
+                if (!(key in payload)) {
+                    return;
+                }
 
                 const value = payload[key];
+
                 if (typeof value !== "string" && typeof value !== "number") {
                     console.warn(
                         "Parameter will skip the values that aren't in string or number type"
                     );
+
                     return;
                 }
 

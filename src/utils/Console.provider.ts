@@ -21,6 +21,7 @@ export default class Console {
         console.group(h);
 
         for (const msg of msgs) {
+            // eslint-disable-next-line no-console
             console.log(msg);
         }
 
