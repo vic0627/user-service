@@ -4,17 +4,18 @@ import type {
     FinalApiConfig,
     ParameterDeclaration,
 } from "src/types/userService.type";
-import XHR from "../requestHandler/XHR.provider";
+import XHR from "./XHR.provider";
 import Injectable from "src/decorator/Injectable.decorator";
 import RuleObject from "../validationEngine/RuleObject.injectable";
 import { deepClone, resolveURL } from "src/utils/common";
 import { Payload } from "src/types/ruleObject.type";
 import RuleError from "../validationEngine/RuleError";
 import CacheManager from "../cacheManager/CacheManager.provider";
+import RequestHandler from "src/abstract/RequestHandler.abstract";
 
 @Injectable()
 export default class APIFactory {
-    #ajax?: XHR;
+    #ajax?: RequestHandler;
 
     /**
      * 初始化網路請求 strategy
@@ -56,7 +57,7 @@ export default class APIFactory {
             rules,
             validation,
             cache,
-            url,
+            url, // inherit 下來時，就已經組成完整的 url 了
         } = _copy;
 
         const payloadTester = this.ruleObject.evaluate(rules);
@@ -67,10 +68,10 @@ export default class APIFactory {
 
             try {
                 if (typeof onBeforeValidation === "function") {
-                    onBeforeValidation(payload, rules);
+                    onBeforeValidation(payload);
                 }
 
-                if (validation) {
+                if (validation) { 
                     payloadTester(payload);
                 }
             } catch (error) {
@@ -81,6 +82,8 @@ export default class APIFactory {
                 }
 
                 return [() => {}, () => {}];
+            } finally {
+                // onValidationSucceed
             }
 
             const _url = this.#paramBuilder(

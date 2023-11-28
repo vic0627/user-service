@@ -75,7 +75,7 @@ export default class XHR implements RequestHandler {
         };
     }
 
-    //#region private methods
+    // #region private methods
     /**
      * 設置 timeout
      * @param xhr XMLHttpRequest instance
@@ -154,54 +154,56 @@ export default class XHR implements RequestHandler {
             console.warn("Abort failed");
         };
 
-        /** 回傳結果的 Promise */
-        const requestObject = new Promise<HttpResponse>((_resolve, _reject) => {
-            const resolve = (value: HttpResponse) => {
-                cleanup();
-                _resolve(value);
-            };
+        try {
+            /** 回傳結果的 Promise */
+            const requestObject = new Promise<HttpResponse>(
+                (_resolve, _reject) => {
+                    const resolve = (value: HttpResponse) => {
+                        cleanup();
+                        _resolve(value);
+                    };
 
-            const reject = (reason?: unknown) => {
-                cleanup();
+                    const reject = (reason?: unknown) => {
+                        cleanup();
+                        _reject(reason);
+                    };
 
-                /** @todo 在發出請求前使用 abortController 會有 Uncaught Error 出現 */
-                _reject(reason);
-            };
+                    abortController = (reason?: unknown) => {
+                        xhr && xhr.abort();
 
-            abortController = (reason?: unknown) => {
-                if (!xhr) {
-                    return;
+                        reject(reason);
+                    };
+
+                    const executor = { resolve, reject, config };
+
+                    xhr.onloadend = this.#handlerFactory(
+                        xhr,
+                        executor,
+                        this.#handleLoadend
+                    );
+                    xhr.onabort = this.#handlerFactory(
+                        xhr,
+                        executor,
+                        this.#handleAbort
+                    );
+                    xhr.ontimeout = this.#handlerFactory(
+                        xhr,
+                        executor,
+                        this.#handleTimeout
+                    );
+                    xhr.onerror = this.#handlerFactory(
+                        xhr,
+                        executor,
+                        this.#handleError
+                    );
                 }
-
-                xhr.abort();
-                reject(reason);
-            };
-
-            const executor = { resolve, reject, config };
-
-            xhr.onloadend = this.#handlerFactory(
-                xhr,
-                executor,
-                this.#handleLoadend
             );
-            xhr.onabort = this.#handlerFactory(
-                xhr,
-                executor,
-                this.#handleAbort
-            );
-            xhr.ontimeout = this.#handlerFactory(
-                xhr,
-                executor,
-                this.#handleTimeout
-            );
-            xhr.onerror = this.#handlerFactory(
-                xhr,
-                executor,
-                this.#handleError
-            );
-        });
 
-        return { requestObject, abortController };
+            return { requestObject, abortController };
+        } catch (error) {
+            // 控制權向上層 catch block 轉移
+            throw new RequestError((error as RequestError)?.message);
+        }
     }
 
     /**
@@ -230,11 +232,7 @@ export default class XHR implements RequestHandler {
         xhr: XMLHttpRequest,
         { reject }: PromiseExecutor
     ) {
-        if (!xhr) {
-            return;
-        }
-
-        reject(new RequestError("Request aborted"));
+        xhr && reject(new RequestError("Request aborted"));
     }
 
     #handleTimeout(
@@ -328,5 +326,5 @@ export default class XHR implements RequestHandler {
 
         return headerMap;
     }
-    //#endregion
+    // #endregion
 }

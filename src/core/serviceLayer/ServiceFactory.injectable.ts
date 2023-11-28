@@ -6,7 +6,7 @@ import type {
     ParentConfig,
 } from "src/types/userService.type";
 import type { RequestConfig } from "src/types/xhr.type";
-import APIFactory from "./APIFactory.injectable";
+import APIFactory from "../requestHandler/APIFactory.injectable";
 import { deepClone, notNull, resolveURL } from "src/utils/common";
 
 @Injectable()

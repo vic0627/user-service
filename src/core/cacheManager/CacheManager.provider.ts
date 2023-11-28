@@ -1,8 +1,9 @@
 import { Payload } from "src/types/ruleObject.type";
 import { HttpResponse } from "src/types/xhr.type";
 import type { CacheData } from "src/types/cacheManager.type";
+import RequestObserver from "src/abstract/RequestObserver.abstract";
 
-export default class CacheManager {
+export default class CacheManager implements RequestObserver {
     #heap = new Map<symbol, CacheData>();
 
     subscribe(

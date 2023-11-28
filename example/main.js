@@ -53,7 +53,10 @@ const service = {
     /** 路由，children 限定屬性 */
     // route: "",
 
-    /** api 配置 */
+    /**
+     * api 配置
+     * 
+     */
     // api: [],
 
     /** @規劃中 攔截器的 hooks */

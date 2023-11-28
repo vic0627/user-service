@@ -75,7 +75,7 @@ export interface PromiseExecutor {
 
 export interface RequestDetail {
     requestToken: symbol;
-    request: () => Promise<unknown> | undefined;
+    request: () => Promise<HttpResponse>;
     abortController: () => void;
     config: RequestConfig;
 }
