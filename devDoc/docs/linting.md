@@ -4,7 +4,7 @@
 
 ```text
 |- root
-|  |- devDoc/ 開發相關文件 
+|  |- devDoc/ 開發相關文件
 |- example/ 此套件實際使用範例
 |- src
 |  |- abstract/ 抽象類
