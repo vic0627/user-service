@@ -8,142 +8,133 @@ import { META_PARAMTYPES, META_EXPOSE } from "src/assets/METADATA";
  * @param options
  */
 export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
-    const { provides, imports } = options;
+  const { provides, imports } = options;
 
-    return (target) => {
-        /**
-         * provides 的 token 與實例陣列
-         */
-        const providers = (provides?.map((slice: ClassSignature) => [
-            Symbol.for(slice.toString()),
-            new slice(),
-        ]) ?? []) as Provider[];
+  return (target) => {
+    /**
+     * provides 的 token 與實例陣列
+     */
+    const providers = (provides?.map((slice: ClassSignature) => [Symbol.for(slice.toString()), new slice()]) ??
+      []) as Provider[];
 
-        /**
-         * imports 的 token、建構函數與其所需依賴
-         */
-        const importers = (imports?.map((slice) => {
-            const token = Symbol.for(slice.toString());
+    /**
+     * imports 的 token、建構函數與其所需依賴
+     */
+    const importers = (imports?.map((slice) => {
+      const token = Symbol.for(slice.toString());
 
-            const deps = (Reflect.getMetadata(META_PARAMTYPES, slice) ??
-                []) as ClassSignature[];
+      const deps = (Reflect.getMetadata(META_PARAMTYPES, slice) ?? []) as ClassSignature[];
 
-            const requirements = deps.map((dep: ClassSignature) =>
-                Symbol.for(dep.toString())
-            );
+      const requirements = deps.map((dep: ClassSignature) => Symbol.for(dep.toString()));
 
-            return [
-                token,
-                {
-                    constructor: slice,
-                    requirements,
-                },
-            ];
-        }) ?? []) as Importer[];
+      return [
+        token,
+        {
+          constructor: slice,
+          requirements,
+        },
+      ];
+    }) ?? []) as Importer[];
 
-        /**
-         * 作為 Ioc 容器的類本身所需的依賴
-         */
-        const targetDep = (Reflect.getMetadata(META_PARAMTYPES, target) ??
-            []) as ClassSignature[];
+    /**
+     * 作為 Ioc 容器的類本身所需的依賴
+     */
+    const targetDep = (Reflect.getMetadata(META_PARAMTYPES, target) ?? []) as ClassSignature[];
 
-        const targetDepToken = (targetDep?.map((dep: ClassSignature) =>
-            Symbol.for(dep.toString())
-        ) ?? []) as symbol[];
+    const targetDepToken = (targetDep?.map((dep: ClassSignature) => Symbol.for(dep.toString())) ?? []) as symbol[];
 
-        /**
-         * 已建立的實例
-         */
-        const instances = new Map(providers);
-        /**
-         * 等待建立的實例
-         */
-        const queue = new Map(importers);
-        /**
-         * 需要直接暴露在 IoC 容器實例上的功能模組
-         */
-        const exposeModules = new Map<string, {}>();
+    /**
+     * 已建立的實例
+     */
+    const instances = new Map(providers);
+    /**
+     * 等待建立的實例
+     */
+    const queue = new Map(importers);
+    /**
+     * 需要直接暴露在 IoC 容器實例上的功能模組
+     */
+    const exposeModules = new Map<string, {}>();
 
-        /**
-         * 當還有未被建立實例的類，就持續遍歷 queue
-         */
-        while (queue.size) {
-            const cacheSize = queue.size;
+    /**
+     * 當還有未被建立實例的類，就持續遍歷 queue
+     */
+    while (queue.size) {
+      const cacheSize = queue.size;
 
-            queue.forEach(({ constructor, requirements }, token) => {
-                const deps: {}[] = [];
+      queue.forEach(({ constructor, requirements }, token) => {
+        const deps: {}[] = [];
 
-                let stop = false;
+        let stop = false;
 
-                for (const token of requirements) {
-                    const dep = instances.get(token) as {} | undefined;
+        for (const token of requirements) {
+          const dep = instances.get(token) as {} | undefined;
 
-                    if (!dep) {
-                        stop = true;
-                        break;
-                    }
+          if (!dep) {
+            stop = true;
+            break;
+          }
 
-                    deps.push(dep);
-                }
-
-                if (stop) {
-                    return;
-                }
-
-                const value = new constructor(...(deps || []));
-
-                const expose = (Reflect.getMetadata(META_EXPOSE, constructor) ??
-                    "") as string;
-
-                if (expose) {
-                    exposeModules.set(expose, value);
-                }
-
-                instances.set(token, value);
-
-                queue.delete(token);
-            });
-
-            if (cacheSize === queue.size) {
-                /**
-                 * 跑到這裡代表有依賴沒被傳入 IoC
-                 */
-                console.warn("Missing dependency.");
-                break;
-            }
+          deps.push(dep);
         }
 
+        if (stop) {
+          return;
+        }
+
+        const value = new constructor(...(deps || []));
+
+        const expose = (Reflect.getMetadata(META_EXPOSE, constructor) ?? "") as string;
+
+        if (expose) {
+          exposeModules.set(expose, value);
+        }
+
+        instances.set(token, value);
+
+        queue.delete(token);
+      });
+
+      if (cacheSize === queue.size) {
         /**
-         * 裝飾器最終會返回原類別的繼承類
+         * 跑到這裡代表有依賴沒被傳入 IoC
          */
-        return class IoC extends target {
-            constructor(...args: any[]) {
-                /**
-                 * 給 IoC 注入所需依賴
-                 */
-                const injections = targetDepToken.map((token: symbol) => {
-                    const dep = instances.get(token);
+        console.warn("Missing dependency.");
+        break;
+      }
+    }
 
-                    if (dep) {
-                        return dep;
-                    }
+    /**
+     * 裝飾器最終會返回原類別的繼承類
+     */
+    return class IoC extends target {
+      constructor(...args: any[]) {
+        /**
+         * 給 IoC 注入所需依賴
+         */
+        const injections = targetDepToken.map((token: symbol) => {
+          const dep = instances.get(token);
 
-                    throw new Error("Missing dependency.");
-                });
+          if (dep) {
+            return dep;
+          }
 
-                super(...injections);
+          throw new Error("Missing dependency.");
+        });
 
-                /**
-                 * 掛載要暴露的功能模組
-                 */
-                exposeModules.forEach((value, name) => {
-                    Object.defineProperty(this, name, {
-                        value,
-                        writable: false,
-                        configurable: false,
-                    });
-                });
-            }
-        };
+        super(...injections);
+
+        /**
+         * 掛載要暴露的功能模組
+         */
+        exposeModules.forEach((value, name) => {
+          Object.defineProperty(this, name, {
+            value,
+            writable: false,
+            configurable: false,
+          });
+        });
+      }
     };
+  };
 }

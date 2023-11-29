@@ -5,32 +5,32 @@ const { nodeResolve } = require("@rollup/plugin-node-resolve");
 // const cleanup = require("rollup-plugin-cleanup");
 
 module.exports = {
-    input: "src/index.ts",
-    output: [
-        {
-            name: "us",
-            file: "./dist/user-service.js",
-            format: "iife",
-            // plugins: [cleanup({ extensions: [".ts", ".js"] })],
-        },
-        {
-            name: "us",
-            file: "./dist/user-service.esm.js",
-            format: "es",
-            // plugins: [cleanup({ extensions: [".ts", ".js"] })],
-        },
-        {
-            name: "us",
-            file: "./dist/user-service.min.js",
-            format: "iife",
-            plugins: [terser()],
-        },
-    ],
-    plugins: [
-        babel({
-            extensions: [".js", ".jsx", ".es6", ".es", ".mjs", ".ts"],
-        }),
-        typescript(),
-        nodeResolve(),
-    ],
+  input: "src/index.ts",
+  output: [
+    {
+      name: "us",
+      file: "./dist/user-service.js",
+      format: "iife",
+      // plugins: [cleanup({ extensions: [".ts", ".js"] })],
+    },
+    {
+      name: "us",
+      file: "./dist/user-service.esm.js",
+      format: "es",
+      // plugins: [cleanup({ extensions: [".ts", ".js"] })],
+    },
+    {
+      name: "us",
+      file: "./dist/user-service.min.js",
+      format: "iife",
+      plugins: [terser()],
+    },
+  ],
+  plugins: [
+    babel({
+      extensions: [".js", ".jsx", ".es6", ".es", ".mjs", ".ts"],
+    }),
+    typescript(),
+    nodeResolve(),
+  ],
 };

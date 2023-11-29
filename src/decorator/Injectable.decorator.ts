@@ -7,10 +7,9 @@ import { ClassDecorator } from "src/types/common.type";
  * Only the module which is decorated by this function can be injected correctly.
  */
 export default function Injectable(): ClassDecorator {
-    return (target) => {
-        const dependencies = (Reflect.getMetadata(META_PARAMTYPES, target) ??
-            []) as ClassSignature[];
+  return (target) => {
+    const dependencies = (Reflect.getMetadata(META_PARAMTYPES, target) ?? []) as ClassSignature[];
 
-        Reflect.defineMetadata(META_PARAMTYPES, dependencies, target);
-    };
+    Reflect.defineMetadata(META_PARAMTYPES, dependencies, target);
+  };
 }

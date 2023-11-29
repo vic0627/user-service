@@ -1,12 +1,7 @@
 import Injectable from "src/decorator/Injectable.decorator";
 import StringRule from "./StringRule.injectable";
 import RuleArray from "./RuleArray.injectable";
-import {
-    ObjectRules,
-    Payload,
-    RuleObjectInterface,
-    ValidRule,
-} from "src/types/ruleObject.type";
+import { ObjectRules, Payload, RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
 import { RuleValidator } from "src/types/ruleLiteral.type";
 import RuleError from "./RuleError";
 import { notNull } from "src/utils/common";
@@ -16,198 +11,183 @@ import { notNull } from "src/utils/common";
  */
 @Injectable()
 export default class RuleObject {
-    #optionalSymbol = "$";
+  #optionalSymbol = "$";
 
-    constructor(
-        private readonly stringRule: StringRule,
-        private readonly ruleArray: RuleArray
-    ) {}
+  constructor(
+    private readonly stringRule: StringRule,
+    private readonly ruleArray: RuleArray,
+  ) {}
 
-    evaluate(rule?: RuleObjectInterface) {
-        if (!notNull(rule)) {
-            return () => {};
-        }
-
-        const { ruleLib, required } = this.#evaluateRules(
-            rule as RuleObjectInterface
-        );
-
-        return (payload: Payload) => {
-            required.forEach((key) => {
-                if (!(key in payload)) {
-                    throw new RuleError(`Parameter '${key}' is required`);
-                }
-            });
-
-            this.#traverseObject(payload, (key, value) => {
-                if (!(key in ruleLib)) {
-                    return;
-                }
-
-                const validator = ruleLib[key];
-
-                validator(key, value);
-            });
-        };
+  evaluate(rule?: RuleObjectInterface) {
+    if (!notNull(rule)) {
+      return () => {};
     }
 
-    #evaluateRules(rule: RuleObjectInterface) {
-        const ruleLib: Record<string, (param: string, value: unknown) => void> =
-            {};
+    const { ruleLib, required } = this.#evaluateRules(rule as RuleObjectInterface);
 
-        const required: string[] = [];
+    return (payload: Payload) => {
+      required.forEach((key) => {
+        if (!(key in payload)) {
+          throw new RuleError(`Parameter '${key}' is required`);
+        }
+      });
 
-        this.#traverseObject(rule, (key, value) => {
-            const optional = this.isOptionalParam(key);
+      this.#traverseObject(payload, (key, value) => {
+        if (!(key in ruleLib)) {
+          return;
+        }
 
-            if (optional) {
-                key = key.slice(1);
-            } else {
-                required.push(key);
-            }
+        const validator = ruleLib[key];
 
-            let validator: RuleValidator | undefined;
+        validator(key, value);
+      });
+    };
+  }
 
-            if (typeof value === "symbol") {
-                validator = this.ruleArray.find(value).executor;
-            } else if (Array.isArray(value)) {
-                const token = this.ruleArray.defineUnion(...value);
+  #evaluateRules(rule: RuleObjectInterface) {
+    const ruleLib: Record<string, (param: string, value: unknown) => void> = {};
 
-                validator = this.ruleArray.find(token).executor;
-            } else {
-                validator = this.stringRule.evaluate(value as ValidRule);
-            }
+    const required: string[] = [];
 
-            Object.defineProperty(ruleLib, key, {
-                value: (param: string, value: unknown) => {
-                    const { valid, msg } = (validator as RuleValidator)(
-                        param,
-                        value
-                    );
+    this.#traverseObject(rule, (key, value) => {
+      const optional = this.isOptionalParam(key);
 
-                    if (!valid) {
-                        throw new RuleError(msg ?? "Undefind rule error");
-                    }
-                },
-            });
+      if (optional) {
+        key = key.slice(1);
+      } else {
+        required.push(key);
+      }
+
+      let validator: RuleValidator | undefined;
+
+      if (typeof value === "symbol") {
+        validator = this.ruleArray.find(value).executor;
+      } else if (Array.isArray(value)) {
+        const token = this.ruleArray.defineUnion(...value);
+
+        validator = this.ruleArray.find(token).executor;
+      } else {
+        validator = this.stringRule.evaluate(value as ValidRule);
+      }
+
+      Object.defineProperty(ruleLib, key, {
+        value: (param: string, value: unknown) => {
+          const { valid, msg } = (validator as RuleValidator)(param, value);
+
+          if (!valid) {
+            throw new RuleError(msg ?? "Undefind rule error");
+          }
+        },
+      });
+    });
+
+    return { ruleLib, required };
+  }
+
+  isOptionalParam(param: string) {
+    return param.startsWith(this.#optionalSymbol);
+  }
+
+  mergeRules(...targets: RuleObjectInterface[]) {
+    const newRules: RuleObjectInterface = {};
+
+    for (const ruleObject of targets) {
+      this.#traverseObject(ruleObject, (key, value) => {
+        Object.defineProperty(newRules, key, {
+          value,
+          enumerable: true,
         });
-
-        return { ruleLib, required };
+      });
     }
 
-    isOptionalParam(param: string) {
-        return param.startsWith(this.#optionalSymbol);
-    }
+    return newRules;
+  }
 
-    mergeRules(...targets: RuleObjectInterface[]) {
-        const newRules: RuleObjectInterface = {};
+  partialRules(target: RuleObjectInterface) {
+    return this.#wrapper(
+      target,
+      (key) => !this.isOptionalParam(key),
+      (key) => this.#optionalSymbol + key,
+      () => true,
+    );
+  }
 
-        for (const ruleObject of targets) {
-            this.#traverseObject(ruleObject, (key, value) => {
-                Object.defineProperty(newRules, key, {
-                    value,
-                    enumerable: true,
-                });
-            });
+  requiredRules(target: RuleObjectInterface) {
+    return this.#wrapper(
+      target,
+      (key) => this.isOptionalParam(key),
+      (key) => key.slice(1),
+      () => true,
+    );
+  }
+
+  pickRules(target: RuleObjectInterface, ...args: (keyof RuleObjectInterface)[]) {
+    return this.#wrapper(
+      target,
+      () => false,
+      (key) => key,
+      (key) => {
+        if (this.isOptionalParam(key)) {
+          key = key.slice(1);
         }
 
-        return newRules;
-    }
+        return args.includes(key);
+      },
+    );
+  }
 
-    partialRules(target: RuleObjectInterface) {
-        return this.#wrapper(
-            target,
-            (key) => !this.isOptionalParam(key),
-            (key) => this.#optionalSymbol + key,
-            () => true
-        );
-    }
+  omitRules(target: RuleObjectInterface, ...args: (keyof RuleObjectInterface)[]) {
+    return this.#wrapper(
+      target,
+      () => false,
+      (key) => key,
+      (key) => {
+        if (this.isOptionalParam(key)) {
+          key = key.slice(1);
+        }
 
-    requiredRules(target: RuleObjectInterface) {
-        return this.#wrapper(
-            target,
-            (key) => this.isOptionalParam(key),
-            (key) => key.slice(1),
-            () => true
-        );
-    }
+        return !args.includes(key);
+      },
+    );
+  }
 
-    pickRules(
-        target: RuleObjectInterface,
-        ...args: (keyof RuleObjectInterface)[]
-    ) {
-        return this.#wrapper(
-            target,
-            () => false,
-            (key) => key,
-            (key) => {
-                if (this.isOptionalParam(key)) {
-                    key = key.slice(1);
-                }
+  #wrapper(
+    target: RuleObjectInterface,
+    canModifyKey: (key: string) => boolean,
+    modifyKeyCallback: (key: string) => string,
+    canDefineProp: (key: string) => boolean,
+  ) {
+    const newRules: RuleObjectInterface = {};
 
-                return args.includes(key);
-            }
-        );
-    }
+    this.#traverseObject(target, (key, value) => {
+      if (canModifyKey(key)) {
+        key = modifyKeyCallback(key);
+      }
 
-    omitRules(
-        target: RuleObjectInterface,
-        ...args: (keyof RuleObjectInterface)[]
-    ) {
-        return this.#wrapper(
-            target,
-            () => false,
-            (key) => key,
-            (key) => {
-                if (this.isOptionalParam(key)) {
-                    key = key.slice(1);
-                }
-
-                return !args.includes(key);
-            }
-        );
-    }
-
-    #wrapper(
-        target: RuleObjectInterface,
-        canModifyKey: (key: string) => boolean,
-        modifyKeyCallback: (key: string) => string,
-        canDefineProp: (key: string) => boolean
-    ) {
-        const newRules: RuleObjectInterface = {};
-
-        this.#traverseObject(target, (key, value) => {
-            if (canModifyKey(key)) {
-                key = modifyKeyCallback(key);
-            }
-
-            if (canDefineProp(key)) {
-                Object.defineProperty(newRules, key, {
-                    value,
-                    enumerable: true,
-                });
-            }
+      if (canDefineProp(key)) {
+        Object.defineProperty(newRules, key, {
+          value,
+          enumerable: true,
         });
+      }
+    });
 
-        return newRules;
+    return newRules;
+  }
+
+  #traverseObject(o: RuleObjectInterface | Payload, callback: (key: string, value: ObjectRules | unknown) => void) {
+    if (typeof o !== "object" || o === null || Array.isArray(o)) {
+      throw new TypeError("Only object literal is accepted");
     }
 
-    #traverseObject(
-        o: RuleObjectInterface | Payload,
-        callback: (key: string, value: ObjectRules | unknown) => void
-    ) {
-        if (typeof o !== "object" || o === null || Array.isArray(o)) {
-            throw new TypeError("Only object literal is accepted");
-        }
+    for (const key in o) {
+      const hasProp = Object.prototype.hasOwnProperty.call(o, key);
 
-        for (const key in o) {
-            const hasProp = Object.prototype.hasOwnProperty.call(o, key);
+      if (!hasProp) {
+        continue;
+      }
 
-            if (!hasProp) {
-                continue;
-            }
-
-            callback(key, o[key]);
-        }
+      callback(key, o[key]);
     }
+  }
 }

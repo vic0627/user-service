@@ -1,6 +1,6 @@
-import us from "../dist/user-service.esm.js";
-import authService from "./services/authService.js";
-import productService from "./services/productService.js";
+import us from "../../dist/user-service.esm.js";
+import authService from "../services/authService.js";
+import productService from "../services/productService.js";
 
 const { createService } = us;
 
@@ -8,7 +8,7 @@ const { createService } = us;
  * 非該 node level 限定的 Configuration 會往下(children, api)繼承，越 deep 的 config 權重越大。
  */
 
-/** @type {import("../src/types/userService.type.ts").ServiceConfig} */
+/** @type {import("../../src/types/userService.type.ts").ServiceConfig} */
 const service = {
     /** 基本 url，root service 限定屬性 */
     baseURL: "https://fakestoreapi.com/",

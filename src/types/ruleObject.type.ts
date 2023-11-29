@@ -11,26 +11,26 @@ export type RuleObjectInterface = Record<PropKey, ObjectRules>;
 export type Payload = Record<PropKey, unknown>;
 
 export interface TypeCheckResult {
-    rotCheck: boolean;
-    roType: "function" | "regexp" | "rot" | null;
-    reason: string | null;
-    rot: unknown;
-    hasLimitation?: boolean;
-    hasArray?: boolean;
-    type?: string;
+  rotCheck: boolean;
+  roType: "function" | "regexp" | "rot" | null;
+  reason: string | null;
+  rot: unknown;
+  hasLimitation?: boolean;
+  hasArray?: boolean;
+  type?: string;
 }
 
 export enum RuleArrayType {
-    intersection,
-    union,
+  intersection,
+  union,
 }
 
 export interface RuleArrayQueueObject {
-    type: RuleArrayType;
-    rules: RuleValidator[];
+  type: RuleArrayType;
+  rules: RuleValidator[];
 }
 
 export interface RuleArrayExecutorArgs extends RuleArrayQueueObject {
-    param: string;
-    value: unknown;
+  param: string;
+  value: unknown;
 }

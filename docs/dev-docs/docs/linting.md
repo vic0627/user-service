@@ -4,7 +4,8 @@
 
 ```text
 |- root
-|  |- devDoc/ 開發相關文件
+|  |- docs
+|     |- dev-docs/ 開發相關文件
 |- example/ 此套件實際使用範例
 |- src
 |  |- abstract/ 抽象類
@@ -57,8 +58,9 @@
     - `let`、`const`、還有表達式，若後面接續包含花括號的述句，需間隔一行
     - 含花括號的述句，若後面接續任何代碼，需間隔一行
     - 表達式，若後面接續 `return` 或 `throw` 關鍵字，需間隔一行
+7. 雙斜線註解後需空一格
 
-詳細 eslint 規範請見 `.eslintrc.cjs`
+> 詳細 eslint 規範請見 `.eslintrc.cjs`
 
 ## 其他規範
 
@@ -72,7 +74,9 @@
      * @param type 字串或數字
      */
     export const getRanNum = (type: "string" | "number" = "number") => {
-        // 取得隨機數字
+        /**
+         * 隨機數
+         */
         const ran = Math.random();
 
         if (type === "number") {

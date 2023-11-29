@@ -1,4 +1,4 @@
 export interface RuleErrorOption {
-    valid: boolean;
-    msg: string | null;
+  valid: boolean;
+  msg: string | null;
 }

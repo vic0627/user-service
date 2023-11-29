@@ -13,57 +13,52 @@ import { ServiceConfig } from "src/types/userService.type";
 import CacheManager from "./cacheManager/CacheManager.provider";
 
 @IOCContainer({
-    provides: [TypeLib, Byte, ByteConvertor, XHR, CacheManager],
-    imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory],
+  provides: [TypeLib, Byte, ByteConvertor, XHR, CacheManager],
+  imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory],
 })
 class Module {
-    constructor(
-        private readonly ruleArray: RuleArray,
-        private readonly typeLib: TypeLib,
-        private readonly ruleObject: RuleObject,
-        private readonly serviceFactory: ServiceFactory
-    ) {}
+  constructor(
+    private readonly ruleArray: RuleArray,
+    private readonly typeLib: TypeLib,
+    private readonly ruleObject: RuleObject,
+    private readonly serviceFactory: ServiceFactory,
+  ) {}
 
-    defineType(type: string, validator: TypeValidator) {
-        return this.typeLib.defineType(type, validator);
-    }
+  defineType(type: string, validator: TypeValidator) {
+    return this.typeLib.defineType(type, validator);
+  }
 
-    defineUnion(...rules: ValidRule[]) {
-        return this.ruleArray.defineUnion(...rules);
-    }
+  defineUnion(...rules: ValidRule[]) {
+    return this.ruleArray.defineUnion(...rules);
+  }
 
-    defineIntersection(...rules: ValidRule[]) {
-        return this.ruleArray.defineIntersection(...rules);
-    }
+  defineIntersection(...rules: ValidRule[]) {
+    return this.ruleArray.defineIntersection(...rules);
+  }
 
-    mergeRules(...targets: RuleObjectInterface[]) {
-        return this.ruleObject.mergeRules(...targets);
-    }
+  mergeRules(...targets: RuleObjectInterface[]) {
+    return this.ruleObject.mergeRules(...targets);
+  }
 
-    partialRules(target: RuleObjectInterface) {
-        return this.ruleObject.partialRules(target);
-    }
+  partialRules(target: RuleObjectInterface) {
+    return this.ruleObject.partialRules(target);
+  }
 
-    requiredRules(target: RuleObjectInterface) {
-        return this.ruleObject.requiredRules(target);
-    }
+  requiredRules(target: RuleObjectInterface) {
+    return this.ruleObject.requiredRules(target);
+  }
 
-    pickRules(target: RuleObjectInterface, ...args: string[]) {
-        return this.ruleObject.pickRules(target, ...args);
-    }
+  pickRules(target: RuleObjectInterface, ...args: string[]) {
+    return this.ruleObject.pickRules(target, ...args);
+  }
 
-    omitRules(target: RuleObjectInterface, ...args: string[]) {
-        return this.ruleObject.omitRules(target, ...args);
-    }
+  omitRules(target: RuleObjectInterface, ...args: string[]) {
+    return this.ruleObject.omitRules(target, ...args);
+  }
 
-    createService(serviceConfig: ServiceConfig) {
-        return this.serviceFactory.createService(serviceConfig);
-    }
+  createService(serviceConfig: ServiceConfig) {
+    return this.serviceFactory.createService(serviceConfig);
+  }
 }
 
-export default new Module(
-    {} as RuleArray,
-    {} as TypeLib,
-    {} as RuleObject,
-    {} as ServiceFactory
-);
+export default new Module({} as RuleArray, {} as TypeLib, {} as RuleObject, {} as ServiceFactory);

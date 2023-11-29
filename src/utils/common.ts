@@ -1,143 +1,138 @@
 import { StringAndStringArray } from "src/types/common.type";
 
-export const notNull = (value: unknown): boolean =>
-    value !== null && value !== undefined;
+export const notNull = (value: unknown): boolean => value !== null && value !== undefined;
 
 export const symbolToken = <T extends string>(target: T) => Symbol.for(target);
 
-export const deepCloneFunction = (fn: Function) =>
-    new Function("return " + fn.toString())() as Function;
+export const deepCloneFunction = (fn: Function) => new Function("return " + fn.toString())() as Function;
 
 export const pureLowerCase = <T extends string>(str: T) => /^[a-z]+$/.test(str);
 
 export const getRanNum = (type: "string" | "number" = "number") => {
-    const ran = Math.random();
+  const ran = Math.random();
 
-    if (type === "number") {
-        return ran;
-    } else if (type === "string") {
-        return ran.toString();
-    }
+  if (type === "number") {
+    return ran;
+  } else if (type === "string") {
+    return ran.toString();
+  }
 
-    throw new Error("Get random number failed");
+  throw new Error("Get random number failed");
 };
 
 export const mergeObject = (...targets: any[]) => {
-    const newObject: any = {};
+  const newObject: any = {};
 
-    for (const o of targets) {
-        for (const key in o) {
-            if (!Object.prototype.hasOwnProperty.call(o, key)) {
-                continue;
-            }
+  for (const o of targets) {
+    for (const key in o) {
+      if (!Object.prototype.hasOwnProperty.call(o, key)) {
+        continue;
+      }
 
-            const value = o[key];
+      const value = o[key];
 
-            Object.defineProperty(newObject, key, {
-                value,
-                enumerable: true,
-                configurable: true,
-                writable: true,
-            });
-        }
+      Object.defineProperty(newObject, key, {
+        value,
+        enumerable: true,
+        configurable: true,
+        writable: true,
+      });
     }
+  }
 
-    return newObject;
+  return newObject;
 };
 
-export const resolveURL = (
-    url: StringAndStringArray,
-    query?: Record<string, string | number>
-) => {
-    const isArray = Array.isArray(url);
+export const resolveURL = (url: StringAndStringArray, query?: Record<string, string | number>) => {
+  const isArray = Array.isArray(url);
 
-    let str: string;
+  let str: string;
 
-    if (isArray) {
-        if (typeof url[0] !== "string") {
-            throw new TypeError("BaseURL can only be string");
-        }
-
-        str = url[0];
-        url.shift();
-    } else if (typeof url === "string") {
-        str = url;
-    } else {
-        throw new TypeError("Unexpected type for url");
+  if (isArray) {
+    if (typeof url[0] !== "string") {
+      throw new TypeError("BaseURL can only be string");
     }
 
-    const iterator = [...(isArray ? url : [])];
+    str = url[0];
+    url.shift();
+  } else if (typeof url === "string") {
+    str = url;
+  } else {
+    throw new TypeError("Unexpected type for url");
+  }
 
-    iterator.forEach((uri) => {
-        const slashEnd = str.endsWith("/");
+  const iterator = [...(isArray ? url : [])];
 
-        if (typeof uri === "number") {
-            if (!slashEnd) {
-                str += "/";
-            }
+  iterator.forEach((uri) => {
+    const slashEnd = str.endsWith("/");
 
-            str += uri;
+    if (typeof uri === "number") {
+      if (!slashEnd) {
+        str += "/";
+      }
 
-            return;
-        }
+      str += uri;
 
-        const slashStart = uri.startsWith("/");
-
-        if (slashEnd && slashStart) {
-            str += uri.slice(1);
-
-            return;
-        }
-
-        if (!slashEnd && !slashStart) {
-            str += "/" + uri;
-
-            return;
-        }
-
-        str += uri;
-    });
-
-    if (str.endsWith("/")) {
-        str = str.slice(0, -1);
+      return;
     }
 
-    if (!query) {
-        return str;
+    const slashStart = uri.startsWith("/");
+
+    if (slashEnd && slashStart) {
+      str += uri.slice(1);
+
+      return;
     }
 
-    Object.entries(query).forEach(([key, value], i) => {
-        if (!i) {
-            str += "?";
-        } else {
-            str += "&";
-        }
+    if (!slashEnd && !slashStart) {
+      str += "/" + uri;
 
-        str += key + "=" + value;
-    });
+      return;
+    }
 
+    str += uri;
+  });
+
+  if (str.endsWith("/")) {
+    str = str.slice(0, -1);
+  }
+
+  if (!query) {
     return str;
+  }
+
+  Object.entries(query).forEach(([key, value], i) => {
+    if (!i) {
+      str += "?";
+    } else {
+      str += "&";
+    }
+
+    str += key + "=" + value;
+  });
+
+  return str;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-constraint
 export const deepClone = <T extends unknown | unknown[]>(source: T) => {
-    if (typeof source !== "object" || source === null) {
-        return source;
+  if (typeof source !== "object" || source === null) {
+    return source;
+  }
+
+  const target = Array.isArray(source) ? ([] as T) : ({} as T);
+
+  for (const key in source) {
+    if (!Object.prototype.hasOwnProperty.call(source, key)) {
+      continue;
     }
 
-    const target = Array.isArray(source) ? ([] as T) : ({} as T);
-
-    for (const key in source) {
-        if (!Object.prototype.hasOwnProperty.call(source, key)) {
-            continue;
-        }
-
-        if (typeof source[key] === "object" && source[key] !== null) {
-            target[key] = deepClone(source[key]);
-        } else {
-            target[key] = source[key];
-        }
+    if (typeof source[key] === "object" && source[key] !== null) {
+      target[key] = deepClone(source[key]);
+    } else {
+      target[key] = source[key];
     }
+  }
 
-    return target;
+  return target;
 };

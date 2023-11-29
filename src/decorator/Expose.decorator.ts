@@ -6,7 +6,7 @@ import { ClassDecorator } from "src/types/common.type";
  * @param name The module name that needs to be registered.
  */
 export default function Expose(name?: string): ClassDecorator {
-    return (target) => {
-        Reflect.defineMetadata(META_EXPOSE, name ?? target.name, target);
-    };
+  return (target) => {
+    Reflect.defineMetadata(META_EXPOSE, name ?? target.name, target);
+  };
 }

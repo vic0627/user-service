@@ -7,20 +7,35 @@
 本專案使用 node 環境：
 
 ```text
-node^18.15.0
+node^20.9.0
 ```
 
 開發使用指令：
 
 ```bash
 # dev
-npm ic
+npm ci
 npm run dev
+
+# browser demo (HMR supported)
+npm run dev:browser
 
 # TODO: add demo script
 ```
 
-目前僅用 live server 去 run `<root-dir>/example` 去檢視 dist 的 esm 版本。
+## 套件 demo 演示 - Browser with vanilla js and ES Module
+
+目前有兩個方案來查看 Browser demo：
+
+1. 使用 VS Code extension「Live Server」瀏覽 <localhost:port/example/browser>
+2. 使用 script `npm run dev:browser`
+
+開發時會使用兩個 terminal 分別運行 `npm run dev` 及 `npm run dev:browser` 兩個指令。
+
+## Request Handler
+
+> 請參考 [Request Handler](./docs//request-handler.md) 文件
+
 處理實際的 HTTP 請求，包括設置請求頭、HTTP 方法等。
 
 目前規劃兩個策略，於不同環境執行：

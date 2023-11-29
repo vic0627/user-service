@@ -1,7 +1,7 @@
 export default class RuleError extends Error {
-    name = "RuleError";
+  name = "RuleError";
 
-    constructor(msg: string) {
-        super(msg);
-    }
+  constructor(msg: string) {
+    super(msg);
+  }
 }

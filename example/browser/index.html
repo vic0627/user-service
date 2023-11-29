@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      socket.on("reload", () => {
+        console.log("Reloading...");
+        location.reload();
+      });
+    </script>
+    <style>
+      #b > img {
+        width: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <p>快取：<button id="d"></button></p>
+    </div>
+    <input type="number" id="n" />
+    <div>
+      <button id="a">點我發請求</button>
+      <button id="e">點我取消請求</button>
+    </div>
+    <div id="b"></div>
+    <script src="../../dist/user-service.js">
+      /* 這邊是 IIFE 的版本 */
+    </script>
+    <script src="./main.js" type="module">
+      /* 這邊是 esm 的版本 */
+    </script>
+    <script>
+      /**
+       * npm run dev:browser
+       */
+
+      let cache = true;
+      const print = () => {
+        d.innerText = cache;
+      };
+      print();
+
+      let cancel;
+
+      const fn = async (limit) => {
+        try {
+          const [reqAllProds, abortAllProds] = $storeAPI.products.getAll(
+            {
+              limit,
+              sort: "desc",
+            },
+            { cache },
+          );
+
+          cancel = abortAllProds;
+
+          const res = await reqAllProds();
+
+          if (res?.status !== 200) throw new Error("Failed to get products");
+
+          const data = JSON.parse(res.data);
+
+          const src = data.map((item) => item?.image);
+
+          b.innerHTML = "";
+
+          src.forEach((str) => {
+            const img = document.createElement("img");
+            img.src = str;
+            b.appendChild(img);
+          });
+        } catch (err) {
+          console.error(err, "capture inside fn");
+        }
+      };
+
+      a.addEventListener("click", async () => {
+        const num = n.value;
+
+        try {
+          await fn(Number(num) || 1);
+        } catch (error) {
+          console.error(error, "capture outside fn");
+        }
+      });
+
+      d.addEventListener("click", () => {
+        cache = !cache;
+        print();
+      });
+
+      e.addEventListener("click", async () => {
+        try {
+          if (typeof cancel === "function") await cancel("安安~~");
+        } catch (error) {
+          console.error(error, "capture from calling abort controllor");
+        }
+      });
+    </script>
+  </body>
+</html>
