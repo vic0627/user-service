@@ -10,6 +10,7 @@ export interface ServiceBasic {
   description?: string;
   validation?: boolean;
   cache?: boolean;
+  interceptor?: ServiceInterceptor;
 }
 
 export interface ApiConfig extends ServiceBasic, Omit<RequestConfig, "url" | "payload"> {
@@ -38,9 +39,7 @@ export interface ValidationHooks {
 
 export interface FinalApiConfig
   extends Omit<RequestConfig, "url" | "payload" | "method">,
-    Pick<ServiceBasic, "cache" | "validation"> {
-  interceptors?: ValidationHooks;
-}
+    Pick<ServiceBasic, "cache" | "validation" | "interceptor"> {}
 
 /**
  * 下列介面、型別為最終參考
@@ -62,13 +61,18 @@ interface ParamDefGroup {
   body?: ParamDef;
 }
 
-interface RequestHooks {
-  onBeforeBuildingURL?: (payload: Payload, paramDef: ParamDefGroup) => void;
-  onBeforeRequest?: (payload: Payload, paramDef: ParamDefGroup) => void;
+export interface PromiseStageHooks {
   onRequest?: () => void;
   onRequestFailed?: (error?: RequestError) => void;
-  onRequestSucceed?: (res: HttpResponse) => void;
+  onRequestSucceed?: (res: HttpResponse | void) => any;
 }
+
+export interface RequestHooks extends PromiseStageHooks {
+  onBeforeBuildingURL?: (payload: Payload, paramDef: ParamDefGroup) => void;
+  onBeforeRequest?: (payload: Payload, paramDef: ParamDefGroup) => void;
+}
+
+export interface ServiceInterceptor extends ValidationHooks, RequestHooks {}
 
 /** @inherit 抽象層功能 */
 interface ServiceFuncConfig {
@@ -81,7 +85,8 @@ interface ServiceFuncConfig {
    * 啟用快取管理
    * @default false
    */
-  cache?: boolean; // default false
+  cache?: boolean;
+  interceptor?: ServiceInterceptor;
 }
 
 /** @inherit 請求配置 */

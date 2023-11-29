@@ -4,7 +4,7 @@ const fs = require("fs");
 const chokidar = require("chokidar");
 const socket = require("socket.io");
 
-const PORT = 5678;
+const PORT = process.argv[2] || 5678;
 const URL = `http://localhost:${PORT}/`;
 
 const server = http.createServer((req, res) => {

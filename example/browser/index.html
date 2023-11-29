@@ -55,7 +55,18 @@
               limit,
               sort: "desc",
             },
-            { cache },
+            {
+              cache,
+              interceptor: {
+                onRequestSucceed: (res) => {
+                  res.fromHooks = true;
+                  console.log(res);
+                },
+                onRequestFailed: (err) => {
+                  console.error(err, "from hooks");
+                },
+              },
+            },
           );
 
           cancel = abortAllProds;

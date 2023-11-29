@@ -57,7 +57,7 @@ export default class ServiceFactory {
   }
 
   #destructureConfig(serviceConfig: ServiceConfig) {
-    const { baseURL, route, validation, cache, headerMap, headers, auth, timeout, timeoutErrorMessage, responseType } =
+    const { baseURL, route, validation, cache, headerMap, headers, auth, timeout, timeoutErrorMessage, responseType, interceptor } =
       serviceConfig;
 
     let _baseURL: string;
@@ -77,6 +77,7 @@ export default class ServiceFactory {
       timeoutErrorMessage,
       responseType,
       headerMap,
+      interceptor
     };
 
     const nodeConfig = Object.assign({ baseURL: _baseURL }, basicConfig) as ParentConfig;

@@ -1,5 +1,5 @@
 import type { RequestConfig } from "src/types/xhr.type";
-import type { ApiConfig, FinalApiConfig, ParameterDeclaration } from "src/types/userService.type";
+import type { ApiConfig, FinalApiConfig, ParameterDeclaration, ServiceInterceptor } from "src/types/userService.type";
 import XHR from "./XHR.provider";
 import Injectable from "src/decorator/Injectable.decorator";
 import RuleObject from "../validationEngine/RuleObject.injectable";
@@ -8,6 +8,7 @@ import { Payload } from "src/types/ruleObject.type";
 import RuleError from "../validationEngine/RuleError";
 import CacheManager from "../cacheManager/CacheManager.provider";
 import RequestHandler from "src/abstract/RequestHandler.abstract";
+import PromiseInterceptors from "./PromiseInterceptors.provider";
 
 @Injectable()
 export default class APIFactory {
@@ -30,6 +31,7 @@ export default class APIFactory {
     private readonly ruleObject: RuleObject,
     private readonly xhr: XHR,
     private readonly cacheManager: CacheManager,
+    private readonly promiseInterceptors: PromiseInterceptors,
   ) {
     this.#useAjaxStrategy();
   }
@@ -50,14 +52,15 @@ export default class APIFactory {
       rules,
       validation,
       cache,
+      interceptor,
       url, // inherit 下來時，就已經組成完整的 url 了
     } = _copy;
 
     const payloadTester = this.ruleObject.evaluate(rules);
 
     return (payload: Payload = {}, requestConfig: FinalApiConfig = {}) => {
-      const { interceptors = {} } = requestConfig;
-      const { onBeforeValidation, onValidationFailed } = interceptors;
+      const { interceptor = {} } = requestConfig;
+      const { onBeforeValidation, onValidationFailed } = interceptor;
 
       try {
         if (typeof onBeforeValidation === "function") {
@@ -99,8 +102,13 @@ export default class APIFactory {
 
       let requestHandler = request;
 
+      requestHandler = this.promiseInterceptors.subscribe(requestToken, request, {
+        serviceConfig: _copy.interceptor,
+        apiRuntime: interceptor,
+      });
+
       if (requestConfig?.cache ?? cache) {
-        requestHandler = this.cacheManager.subscribe(requestToken, request, payload);
+        requestHandler = this.cacheManager.subscribe(requestToken, requestHandler, payload);
       }
 
       return [requestHandler, abortController];
@@ -166,5 +174,9 @@ export default class APIFactory {
     });
 
     return resolveURL([url, ..._param], _query);
+  }
+
+  #hasPromiseStageHooks(interceptor: ServiceInterceptor) {
+    return "onRequest" in interceptor || "onRequestFailed" in interceptor || "onRequestSucceed" in interceptor;
   }
 }
