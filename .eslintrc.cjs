@@ -15,7 +15,7 @@ module.exports = {
     "dist",
     "public",
     "example",
-    "scripts"
+    "scripts",
   ],
   rules: {
     semi: 2,

@@ -4,12 +4,12 @@ const { mergeRules, partialRules } = us;
 /** 以下為參數名稱及敘述 */
 
 const limitAndSortDescription = {
-    limit: "回傳商品數量限制，正整數",
-    sort: "排序方式，預設升冪排列",
+  limit: "回傳商品數量限制，正整數",
+  sort: "排序方式，預設升冪排列",
 };
 
 const idDescription = {
-    id: "商品 id，正整數",
+  id: "商品 id，正整數",
 };
 
 /** 以下為驗證規則物件 */
@@ -19,172 +19,171 @@ const positiveInt = "int@1:"; // 正整數
 const productIdRule = { id: positiveInt };
 
 const productRules = {
-    title: "string@1:20", // 長度 >= 1 且 <= 20 的字串
-    price: "number@0:", // 正數或 0
-    description: "string@1:100", // 長度 >= 1 且 <= 100 的字串
-    image: "file@:5mb", // <= 5mb 的 File 物件
-    category: "string", // 字串
+  title: "string@1:20", // 長度 >= 1 且 <= 20 的字串
+  price: "number@0:", // 正數或 0
+  description: "string@1:100", // 長度 >= 1 且 <= 100 的字串
+  image: "file@:5mb", // <= 5mb 的 File 物件
+  category: "string", // 字串
 };
 
 const productDescription = {
-    title: "商品標題",
-    price: "商品價格",
-    description: "商品描述",
-    image: "商品圖片",
-    category: "商品分類",
+  title: "商品標題",
+  price: "商品價格",
+  description: "商品描述",
+  image: "商品圖片",
+  category: "商品分類",
 };
 
 const productQueryRules = {
-    /** $ 開頭為非必要參數，仍可設定驗證規則，將在收到值時執行驗證。 */
-    $limit: positiveInt,
-    $sort: (_, val) => {
-        if (val !== "desc" && val !== "asc")
-            return {
-                valid: false,
-                msg: `"Property 'sort' could only be 'desc' or 'asc'.`,
-            };
+  /** $ 開頭為非必要參數，仍可設定驗證規則，將在收到值時執行驗證。 */
+  $limit: positiveInt,
+  $sort: (_, val) => {
+    if (val !== "desc" && val !== "asc")
+      return {
+        valid: false,
+        msg: `"Property 'sort' could only be 'desc' or 'asc'.`,
+      };
 
-        return {
-            valid: true,
-            msg: null,
-        };
-    },
+    return {
+      valid: true,
+      msg: null,
+    };
+  },
 };
 
 export default {
+  /**
+   * 結合 baseURL 的完整 url 會是 https://fakestoreapi.com/products
+   */
+  route: "products",
+
+  /**
+   * 可將最終返回的 API 重新命名
+   */
+  // name: "products",
+
+  description: "獲取虛擬商店中的所有商品數據，包括商品名稱、價格、描述等詳細信息。",
+
+  /**
+   * api 為根據同層的 route 上的方法，可為 object literal(單一方法) 或 array(多個方法)
+   */
+  api: [
     /**
-     * 結合 baseURL 的完整 url 會是 https://fakestoreapi.com/products
+     * GET https://fakestoreapi.com/products?limit=<LIMIT>&sort=<SORT>
+     * 若無設定 method 預設為 GET
+     *
+     * @example
+     * $storeAPI.products.getAll()
      */
-    route: "products",
-
+    {
+      name: "getAll",
+      description: "取得所有商品訊息。",
+      query: limitAndSortDescription,
+      rules: partialRules(productQueryRules),
+      cache: true,
+    },
     /**
-     * 可將最終返回的 API 重新命名
+     * GET https://fakestoreapi.com/products/:id
+     *
+     * @example
+     * $storeAPI.products.getById({ id })
      */
-    // name: "products",
-
-    description:
-        "獲取虛擬商店中的所有商品數據，包括商品名稱、價格、描述等詳細信息。",
-
+    {
+      name: "getById",
+      description: "依 id 取得單項商品訊息。",
+      param: idDescription,
+      rules: productIdRule,
+    },
     /**
-     * api 為根據同層的 route 上的方法，可為 object literal(單一方法) 或 array(多個方法)
+     * POST https://fakestoreapi.com/products
+     *
+     * @example
+     * $storeAPI.products.create({ title, price, description, image, category })
      */
-    api: [
-        /**
-         * GET https://fakestoreapi.com/products?limit=<LIMIT>&sort=<SORT>
-         * 若無設定 method 預設為 GET
-         *
-         * @example
-         * $storeAPI.products.getAll()
-         */
-        {
-            name: "getAll",
-            description: "取得所有商品訊息。",
-            query: limitAndSortDescription,
-            rules: partialRules(productQueryRules),
-            cache: true,
-        },
-        /**
-         * GET https://fakestoreapi.com/products/:id
-         *
-         * @example
-         * $storeAPI.products.getById({ id })
-         */
-        {
-            name: "getById",
-            description: "依 id 取得單項商品訊息。",
-            param: idDescription,
-            rules: productIdRule,
-        },
-        /**
-         * POST https://fakestoreapi.com/products
-         *
-         * @example
-         * $storeAPI.products.create({ title, price, description, image, category })
-         */
-        {
-            name: "create",
-            description: "新增商品。",
-            method: "POST",
-            rules: productRules,
-        },
-        /**
-         * PUT https://fakestoreapi.com/products/:id
-         *
-         * @example
-         * $storeAPI.products.update({ id, title, price, description, image, category })
-         */
-        {
-            name: "update",
-            description: "更新商品資訊(整體)。",
-            method: "PUT",
-            param: idDescription,
-            rules: mergeRules(productRules, productIdRule),
-        },
-        /**
-         * PATCH https://fakestoreapi.com/products/:id
-         *
-         * @example
-         * $storeAPI.products.modify({ id, title?, price?, description?, image?, category? })
-         */
-        {
-            name: "modify",
-            description: "更新商品資訊(局部)。",
-            method: "PATCH",
-            param: idDescription,
-            rules: mergeRules(partialRules(productRules), productIdRule),
-        },
-        /**
-         * DELETE https://fakestoreapi.com/products/:id
-         *
-         * @example
-         * $storeAPI.products.delete({ id })
-         */
-        {
-            name: "delete",
-            description: "依 id 刪除商品",
-            method: "DELETE",
-            param: idDescription,
-            rules: productIdRule,
-        },
-    ],
-
+    {
+      name: "create",
+      description: "新增商品。",
+      method: "POST",
+      rules: productRules,
+    },
     /**
-     * 子路由
+     * PUT https://fakestoreapi.com/products/:id
+     *
+     * @example
+     * $storeAPI.products.update({ id, title, price, description, image, category })
      */
-    children: [
-        {
-            /**
-             * GET https://fakestoreapi.com/products/categories
-             * 若無 api 參數，則所有設定將為預設值，默認此路徑只有一個 GET 方法
-             * 此行為只會發生在 children route 上
-             *
-             * @example
-             * $storeAPI.products.getCategories()
-             */
-            route: "categories",
-            name: "getCategories",
-            description: "取得所有商品種類。",
-            /** 若設定 cache(預設 false)，重複請求時若無參數變動將會返回上次所記錄的值 */
-            cache: true,
-        },
-        {
-            route: "category",
-            name: "getProductsIn",
-            description: "取得特定種類所有商品。",
+    {
+      name: "update",
+      description: "更新商品資訊(整體)。",
+      method: "PUT",
+      param: idDescription,
+      rules: mergeRules(productRules, productIdRule),
+    },
+    /**
+     * PATCH https://fakestoreapi.com/products/:id
+     *
+     * @example
+     * $storeAPI.products.modify({ id, title?, price?, description?, image?, category? })
+     */
+    {
+      name: "modify",
+      description: "更新商品資訊(局部)。",
+      method: "PATCH",
+      param: idDescription,
+      rules: mergeRules(partialRules(productRules), productIdRule),
+    },
+    /**
+     * DELETE https://fakestoreapi.com/products/:id
+     *
+     * @example
+     * $storeAPI.products.delete({ id })
+     */
+    {
+      name: "delete",
+      description: "依 id 刪除商品",
+      method: "DELETE",
+      param: idDescription,
+      rules: productIdRule,
+    },
+  ],
 
-            /** 使用物件作為參數，默認此路徑只有一個方法 */
-            api: {
-                /**
-                 * GET https://fakestoreapi.com/products/category?limit=<LIMIT>&sort=<SORT>
-                 *
-                 * @example
-                 * $storeAPI.products.getProductsIn({ limit?, sort?, category })
-                 */
-                param: { category: "商品分類" },
-                query: limitAndSortDescription,
-                rules: mergeRules(productQueryRules, { category: "string" }),
-                cache: true,
-            },
-        },
-    ],
+  /**
+   * 子路由
+   */
+  children: [
+    {
+      /**
+       * GET https://fakestoreapi.com/products/categories
+       * 若無 api 參數，則所有設定將為預設值，默認此路徑只有一個 GET 方法
+       * 此行為只會發生在 children route 上
+       *
+       * @example
+       * $storeAPI.products.getCategories()
+       */
+      route: "categories",
+      name: "getCategories",
+      description: "取得所有商品種類。",
+      /** 若設定 cache(預設 false)，重複請求時若無參數變動將會返回上次所記錄的值 */
+      cache: true,
+    },
+    {
+      route: "category",
+      name: "getProductsIn",
+      description: "取得特定種類所有商品。",
+
+      /** 使用物件作為參數，默認此路徑只有一個方法 */
+      api: {
+        /**
+         * GET https://fakestoreapi.com/products/category?limit=<LIMIT>&sort=<SORT>
+         *
+         * @example
+         * $storeAPI.products.getProductsIn({ limit?, sort?, category })
+         */
+        param: { category: "商品分類" },
+        query: limitAndSortDescription,
+        rules: mergeRules(productQueryRules, { category: "string" }),
+        cache: true,
+      },
+    },
+  ],
 };

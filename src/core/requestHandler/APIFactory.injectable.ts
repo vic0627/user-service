@@ -29,7 +29,7 @@ export default class APIFactory {
   constructor(
     private readonly ruleObject: RuleObject,
     private readonly xhr: XHR,
-    private readonly cacheManager: CacheManager
+    private readonly cacheManager: CacheManager,
   ) {
     this.#useAjaxStrategy();
   }
