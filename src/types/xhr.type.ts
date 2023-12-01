@@ -1,3 +1,5 @@
+import { OnRequestCallback } from "./userService.type";
+
 export type HttpMethod =
   | "get"
   | "GET"
@@ -67,21 +69,38 @@ export interface RequestConfig {
   method?: HttpMethod;
 }
 
+/** Promise pending 狀態的決行函式 */
 export interface PromiseExecutor {
   resolve: (value: HttpResponse) => void;
   reject: (reason?: any) => void;
-  config?: RequestConfig;
 }
 
-export type RequestExecutor = (() => Promise<HttpResponse | void>) | (() => Promise<HttpResponse>);
+/**
+ * final API 的一部分
+ * 1. 響應結果 Promise
+ * 2. 取消請求控制器
+ */
+export type RequestExecutorResult = [response: Promise<void | HttpResponse>, abortController: () => void];
 
+/**
+ * 輸出 final API 的函式
+ * @description 會在返回給 client 之前就被調用一或多次，次數依串接的 RequestPipe 數量決定。
+ */
+export type RequestExecutor = (onRequest?: OnRequestCallback) => RequestExecutorResult;
+
+/** RequestHandler.request() 返回的資料 */
 export interface RequestDetail {
+  /** 代表該 API 的唯一鍵 */
   requestToken: symbol;
+  /** 輸出 final API 的函式 */
   request: RequestExecutor;
-  abortController: () => void;
+  /** API 配置(可擴充) */
   config: RequestConfig;
+  /** Promise pending 狀態的決行函式 */
+  executor: PromiseExecutor;
 }
 
+/** 響應結果的格式 */
 export interface HttpResponse {
   data: any;
   status: number;

@@ -1,4 +1,4 @@
-// import { ParentConfig, ServiceConfig } from "src/types/userService.type";
+import { InheritConfig } from "src/types/userService.type";
 import { notNull } from "src/utils/common";
 
 export default class Service {
@@ -7,7 +7,7 @@ export default class Service {
   _parent?: Service;
   // _chirdren?: Service[];
 
-  // _config?: ServiceConfig | ParentConfig;
+  _config?: InheritConfig;
 
   constructor() {}
 

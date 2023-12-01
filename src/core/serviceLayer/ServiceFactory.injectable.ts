@@ -1,7 +1,13 @@
+import type { RequestConfig } from "src/types/xhr.type";
+import type {
+  InheritConfig,
+  OverwriteConfig,
+  ServiceApiConfig,
+  ServiceConfigChild,
+  ServiceConfigRoot,
+} from "src/types/userService.type";
 import Injectable from "src/decorator/Injectable.decorator";
 import Service from "./Service";
-import type { ApiConfig, ServiceConfig, ParentConfig } from "src/types/userService.type";
-import type { RequestConfig } from "src/types/xhr.type";
 import APIFactory from "../requestHandler/APIFactory.injectable";
 import { deepClone, notNull, resolveURL } from "src/utils/common";
 
@@ -11,27 +17,32 @@ export default class ServiceFactory {
 
   constructor(private readonly apiFactory: APIFactory) {}
 
-  createService(serviceConfig: ServiceConfig) {
+  createService(serviceConfig: ServiceConfigRoot) {
     return this.#buildServiceTree({ serviceConfig });
   }
 
-  #buildServiceTree(config: { serviceConfig: ServiceConfig; parent?: Service; parentConfig?: ParentConfig }) {
+  #buildServiceTree(config: {
+    serviceConfig: ServiceConfigRoot | ServiceConfigChild;
+    parent?: Service;
+    parentConfig?: InheritConfig;
+  }) {
     const { serviceConfig, parent, parentConfig = {} } = config;
 
-    this.#routeGuard(serviceConfig.baseURL, serviceConfig.route);
+    this.#routeGuard((serviceConfig as ServiceConfigRoot).baseURL, (serviceConfig as ServiceConfigChild).route);
 
-    const parentConfigCopy = deepClone(parentConfig);
+    const parentConfigCopy = deepClone(parentConfig) as InheritConfig | {};
 
-    const _serviceConfig = Object.assign(parentConfigCopy, serviceConfig);
+    const overwriteConfig = Object.assign(parentConfigCopy, serviceConfig) as OverwriteConfig;
+
     const {
       name,
       // description,
       api,
       children,
       route,
-    } = _serviceConfig;
+    } = overwriteConfig;
 
-    const { nodeConfig, reqConfig } = this.#destructureConfig(_serviceConfig);
+    const { nodeConfig, reqConfig } = this.#destructureConfig(overwriteConfig);
 
     const service = new Service();
 
@@ -47,7 +58,7 @@ export default class ServiceFactory {
       throw new Error("Name is required");
     }
 
-    // service._config = _serviceConfig;
+    service._config = overwriteConfig;
 
     this.#buildAPI(service, reqConfig, api);
 
@@ -56,11 +67,14 @@ export default class ServiceFactory {
     return service;
   }
 
-  #destructureConfig(serviceConfig: ServiceConfig) {
-    const { baseURL, route, validation, cache, headerMap, headers, auth, timeout, timeoutErrorMessage, responseType, interceptor } =
+  #destructureConfig(serviceConfig: ServiceConfigRoot | ServiceConfigChild) {
+    const { validation, cache, headerMap, headers, auth, timeout, timeoutErrorMessage, responseType, interceptor } =
       serviceConfig;
 
     let _baseURL: string;
+
+    const baseURL = (serviceConfig as ServiceConfigRoot).baseURL;
+    const route = (serviceConfig as ServiceConfigChild).route;
 
     if (baseURL && route) {
       _baseURL = resolveURL([baseURL, route]);
@@ -77,10 +91,10 @@ export default class ServiceFactory {
       timeoutErrorMessage,
       responseType,
       headerMap,
-      interceptor
+      interceptor,
     };
 
-    const nodeConfig = Object.assign({ baseURL: _baseURL }, basicConfig) as ParentConfig;
+    const nodeConfig = Object.assign({ baseURL: _baseURL }, basicConfig) as InheritConfig;
 
     const reqConfig = Object.assign({ url: _baseURL }, basicConfig) as RequestConfig;
 
@@ -113,7 +127,7 @@ export default class ServiceFactory {
     return route.split("/")[0];
   }
 
-  #buildAPI(service: Service, defaultConfig: RequestConfig, api?: ApiConfig | ApiConfig[]) {
+  #buildAPI(service: Service, defaultConfig: RequestConfig, api?: ServiceApiConfig | ServiceApiConfig[]) {
     if (Array.isArray(api)) {
       api.forEach((config) => {
         const value = this.apiFactory.createAPI(config, defaultConfig);
@@ -135,7 +149,7 @@ export default class ServiceFactory {
     }
   }
 
-  #buildChildren(service: Service, children?: ServiceConfig[], parentConfig?: ParentConfig) {
+  #buildChildren(service: Service, children?: ServiceConfigChild[], parentConfig?: InheritConfig) {
     if (!notNull(children)) {
       return;
     }
@@ -146,11 +160,11 @@ export default class ServiceFactory {
       throw new Error("Children must be an array");
     }
 
-    const singleMethod = (children: ServiceConfig) => !children?.children && !Array.isArray(children?.api);
+    const singleMethod = (children: ServiceConfigChild) => !children?.children && !Array.isArray(children?.api);
 
     children.forEach((child) => {
       if (singleMethod(child)) {
-        const { name, value } = this.#buildSingleMethod(child, parentConfig as ParentConfig);
+        const { name, value } = this.#buildSingleMethod(child, parentConfig as InheritConfig);
 
         Object.defineProperty(service, name, {
           value,
@@ -169,30 +183,30 @@ export default class ServiceFactory {
     });
   }
 
-  #buildSingleMethod(child: ServiceConfig, parentConfig: ParentConfig) {
+  #buildSingleMethod(child: ServiceConfigChild, parentConfig: InheritConfig) {
     const { route, api } = child;
     const { baseURL } = parentConfig;
 
     const url = resolveURL([baseURL as string, route as string]);
 
-    const configCopy = deepClone(parentConfig) as RequestConfig & ParentConfig & ServiceConfig;
+    const configCopy = deepClone(parentConfig);
 
     Object.assign(configCopy, child);
 
-    delete configCopy.baseURL;
-    delete configCopy.route;
-    delete configCopy.api;
-    delete configCopy.children;
+    // delete configCopy.baseURL;
+    // delete configCopy.route;
+    // delete configCopy.api;
+    // delete configCopy.children;
 
     configCopy.url = url;
 
-    const name = (api as ApiConfig)?.name ?? child.name ?? this.#getFirstRoute(route);
+    const name = (api as ServiceApiConfig)?.name ?? child.name ?? this.#getFirstRoute(route);
 
     if (!name) {
       throw new Error("Name or route must required when defining single method");
     }
 
-    const value = this.apiFactory.createAPI(api as ApiConfig, configCopy);
+    const value = this.apiFactory.createAPI(api as ServiceApiConfig, configCopy);
 
     return { name, value };
   }

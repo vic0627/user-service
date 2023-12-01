@@ -21,49 +21,75 @@
   </head>
   <body>
     <div>
+      <h2>取得商品</h2>
       <p>快取：<button id="d"></button></p>
+      <p>
+        排序方式：
+        <select name="s" id="s">
+          <option value="asc">升冪</option>
+          <option value="desc">降冪</option>
+          <option value="abc">參數驗證測試</option>
+        </select>
+      </p>
+      <label for="n">
+        數量：
+        <input type="number" id="n" value="10" />
+      </label>
     </div>
-    <input type="number" id="n" />
-    <div>
+    <div style="margin-top: 20px">
       <button id="a">點我發請求</button>
       <button id="e">點我取消請求</button>
     </div>
     <div id="b"></div>
+
     <script src="../../dist/user-service.js">
       /* 這邊是 IIFE 的版本 */
     </script>
+
     <script src="./main.js" type="module">
-      /* 這邊是 esm 的版本 */
+      /* 這邊是 esm 的版本(含 client code) */
     </script>
+
     <script>
       /**
-       * npm run dev:browser
+       * $ npm run dev:browser
+       * yes baby
        */
 
       let cache = true;
+
       const print = () => {
         d.innerText = cache;
       };
+
       print();
 
       let cancel;
 
       const fn = async (limit) => {
+        let i = 0;
+
         try {
           const [reqAllProds, abortAllProds] = $storeAPI.products.getAll(
             {
               limit,
-              sort: "desc",
+              sort: s.value,
             },
             {
               cache,
               interceptor: {
+                onRequest: () => {
+                  console.log("time passing...", i.toFixed(2), "s");
+                  i += 0.05;
+                },
                 onRequestSucceed: (res) => {
                   res.fromHooks = true;
-                  console.log(res);
+                  res.data = JSON.parse(res.data);
+                  console.log("get result from onRequestSucceed", res);
+                  return res;
                 },
                 onRequestFailed: (err) => {
-                  console.error(err, "from hooks");
+                  console.error(err, "from onRequestFailed");
                 },
               },
             },
@@ -71,13 +97,11 @@
 
           cancel = abortAllProds;
 
-          const res = await reqAllProds();
+          const res = await reqAllProds;
 
           if (res?.status !== 200) throw new Error("Failed to get products");
 
-          const data = JSON.parse(res.data);
-
-          const src = data.map((item) => item?.image);
+          const src = res.data.map((item) => item?.image);
 
           b.innerHTML = "";
 
@@ -108,7 +132,7 @@
 
       e.addEventListener("click", async () => {
         try {
-          if (typeof cancel === "function") await cancel("安安~~");
+          if (typeof cancel === "function") cancel("安安~~");
         } catch (error) {
           console.error(error, "capture from calling abort controllor");
         }

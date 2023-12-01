@@ -6,12 +6,12 @@ import RuleArray from "./validationEngine/RuleArray.injectable";
 import { RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
 import { TypeValidator } from "src/types/ruleLiteral.type";
 import RuleObject from "./validationEngine/RuleObject.injectable";
-import XHR from "./requestHandler/XHR.provider";
+import XHR from "./requestHandler/requestStrategy/XHR.provider";
 import ServiceFactory from "./serviceLayer/ServiceFactory.injectable";
 import APIFactory from "./requestHandler/APIFactory.injectable";
 import { ServiceConfig } from "src/types/userService.type";
-import CacheManager from "./cacheManager/CacheManager.provider";
-import PromiseInterceptors from "./requestHandler/PromiseInterceptors.provider";
+import CacheManager from "./requestHandler/requestPipe/CacheManager.provider";
+import PromiseInterceptors from "./requestHandler/requestPipe/PromiseInterceptors.provider";
 
 @IOCContainer({
   provides: [TypeLib, Byte, ByteConvertor, XHR, CacheManager, PromiseInterceptors],

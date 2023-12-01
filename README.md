@@ -2,7 +2,7 @@
 
 > 為前端(後端適用 node js)與 API 之間的抽象層，優化和簡化前/後端開發中與 API 交互的複雜性。
 
-開發相關文件請見：[devDoc](./devDoc/README.md)
+開發相關文件請見：[devDoc](./docs/dev-docs/README.md)
 
 ## Features
 

@@ -12,6 +12,8 @@
 2. Final API Runtime 階段：此階段會在 client 使用 Final API 時執行，為同步方法
 3. Promise 階段：此階段會在 client 使用 Final API 所返回的 `requestHandler` 時執行，三個攔截器剛好會對應到 Promise 的三種狀態 pending、rejected、fulfilled
 
+> 預計 `onValidationSucceed` 與 `onBeforeBuildingURL` 兩個 hooks 會合併成一個，另外 Promise 階段的 `onRequest` 尚未實踐。
+
 ![request flow](../img/request-flow.png)
 
 ## 請求策略

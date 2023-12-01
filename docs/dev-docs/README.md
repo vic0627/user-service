@@ -10,31 +10,86 @@
 node^20.9.0
 ```
 
-開發使用指令：
+## 指令
 
 ```bash
-# dev
+# 安裝依賴
 npm ci
+
+# 開發模式：監看 src 變動重新打包進 dist
 npm run dev
 
-# browser demo (HMR supported)
-npm run dev:browser
+# 開發模式(browser)：監看 src、example/browser 變動，重新打包進 dist 並 reload 網頁，`<port>` 預設是 5678
+npm run dev:browser <port>
 
-# TODO: add demo script
+# 測試
+npm run test
+
+# 檢查原始碼格式
+npm run lint
+
+# 快速修正原始碼格式
+npm run lint:fix
+
+# 自動排版
+npm run format
+
+# 打包
+npm run build
 ```
 
-## 套件 demo 演示 - Browser with vanilla js and ES Module
+## 目錄
 
-目前有兩個方案來查看 Browser demo：
+```text
+|- root
+   |- .husky            # git precommit hooks 設定
+   |- docs              # 所有文件
+   |  |- dev-docs       # 開發文件
+   |- example           # 套件成品使用 demo
+   |  |- browser        # vanilla js with es module
+   |- scripts           # npm 腳本
+   |- src               # 原始碼
+   |  |- abstract       # 抽象類
+   |  |- assets         # 靜態資源 or 常數
+   |  |- core           # 程式主要功能
+   |  |- decorator      # 裝飾器
+   |  |- types          # 類型聲明 (type, interface)
+   |  |- utils          # 共用邏輯
+   |- test              # 測試
+```
 
-1. 使用 VS Code extension「Live Server」瀏覽 <localhost:port/example/browser>
-2. 使用 script `npm run dev:browser`
+## 程式結構
 
-開發時會使用兩個 terminal 分別運行 `npm run dev` 及 `npm run dev:browser` 兩個指令。
+![structure](./img/structure-real.png)
 
-## Request Handler
+本專案主要架構以 **控制反轉（Inversion of Control, IoC）** 與 **依賴注入（Dependency Injection）** 實現功能模組間的串接，此架構有助於提高代碼的可維護性、可測試性和可擴展性，透過使用控制反轉和依賴注入，可以更容易地管理模組之間的關係，使系統更加靈活且易於理解。
 
-> 請參考 [Request Handler](./docs//request-handler.md) 文件
+由控制反轉容器所扮演的表象模式則提供了一個簡潔的外部介面，隱藏了內部細節，使得整體系統的複雜性被隔離在特定的組件之中。
+
+1. **User Interface / index.ts**：
+    - 定位： 這是使用者介面的入口點，也是引入整個套件的地方。
+    - 職責： 彙整單一或多個控制反轉容器（IoC Container），提供最終的使用者介面。
+    - 解釋： 在這個檔案中，你可以期望看到程式初始化的相關邏輯，包括建立並配置控制反轉容器，以及引入其他功能模組。
+2. **IoC / Facade**：
+    - 定位： 控制反轉容器或表象模式的實現。
+    - 職責： 彙整單一或多個功能模組，提供一個統一的、簡化的接口，為整個系統提供完整功能。
+    - 解釋： 這可能是一個具有高層次介面的類別或模組，它擔當了整體系統的門面，隱藏了底層功能模組的複雜性，讓其他部分能夠更容易地與系統進行互動。
+3. **(I) Injectable**：
+    - 定位： 有依賴注入的功能模組。
+    - 職責： 提供特定的功能，同時明確聲明其所依賴的其他模組，以便透過依賴注入方式進行配置。
+    - 解釋： 這些功能模組通常包含了業務邏輯，但它們的依賴性被移除，而是透過外部容器進行注入。這樣的結構有助於提高程式碼的可測試性和可擴展性。
+4. **(P) Provider**：
+    - 定位： 無依賴注入的功能模組，提供最純粹的功能。
+    - 職責： 為整個程式架構提供最基礎的功能，通常不涉及依賴注入。
+    - 解釋： 這些功能模組可能是一些提供低層次服務或基本功能的元件，它們不依賴於外部組件，而是直接提供服務。這有助於確保最基礎的功能的獨立性和穩定性。
+
+> **[提醒]** 功能在進行切割、拆分時須注意彼此是否有**循環依賴**（A 依賴於 B、B 依賴於 C、C 依賴於 A）。如果有，請考慮其他拆分方式，避免在 IoC 建立依賴實例時出現錯誤。
+
+## 功能模組
+
+### Request Handler
+
+> 請參考 [Request Handler](./docs/request-handler.md) 文件
 
 處理實際的 HTTP 請求，包括設置請求頭、HTTP 方法等。
 
@@ -45,7 +100,13 @@ npm run dev:browser
 
 **策略必為抽象類 `RequestHandler` 的實現**，後續服務層在引用策略時才能依賴於抽象。
 
-## Cache Manager
+#### Request Pipe
+
+##### Promise Interceptors
+
+請求時 Promise 階段的攔截器。
+
+##### Cache Manager
 
 管理 API 請求的資料暫存，以減少不必要的請求。可以使用簡單的快取機制，檢測到相同的請求時直接返回暫存值。
 
@@ -82,18 +143,3 @@ npm run dev:browser
 ### Documentation Generator
 
 生成 API 文件的模組，動態收集端點、參數說明、驗證規則等資訊，生成可閱讀的 API 文件。
-
-## 程式結構
-
-![structure](./img/structure-real.png)
-
-> 淺色底為規劃中、尚未實作的項目。
-
-### 角色功能簡介
-
-- **user interface / index.ts**：彙整單/多個 IoC 容器，提供最終使用者介面，也是引入套件的地方。
-- **IoC / Facade**：控制反轉容器/表象模式，彙整單/多個功能模組，提供一個完整功能。
-- **(I) Injectable**：有依賴注入的功能模組。
-- **(P) Provider**：無依賴注入的功能模組，提供最純粹的功能，為整個程式架構最基礎單位。
-
-> **[提醒]** 功能在進行切割、拆分時須注意彼此是否有**循環依賴**（A 依賴於 B、B 依賴於 C、C 依賴於 A）。如果有，請考慮其他拆分方式，避免在 IoC 建立依賴實例時出現錯誤。

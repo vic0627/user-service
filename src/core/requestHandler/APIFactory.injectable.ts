@@ -1,22 +1,24 @@
+import type { FinalApiConfig, InheritConfig, ParamDef, ServiceApiConfig } from "src/types/userService.type";
 import type { RequestConfig } from "src/types/xhr.type";
-import type { ApiConfig, FinalApiConfig, ParameterDeclaration, ServiceInterceptor } from "src/types/userService.type";
-import XHR from "./XHR.provider";
+import type { Payload } from "src/types/ruleObject.type";
+import XHR from "./requestStrategy/XHR.provider";
 import Injectable from "src/decorator/Injectable.decorator";
 import RuleObject from "../validationEngine/RuleObject.injectable";
 import { deepClone, resolveURL } from "src/utils/common";
-import { Payload } from "src/types/ruleObject.type";
 import RuleError from "../validationEngine/RuleError";
-import CacheManager from "../cacheManager/CacheManager.provider";
+import CacheManager from "./requestPipe/CacheManager.provider";
 import RequestHandler from "src/abstract/RequestHandler.abstract";
-import PromiseInterceptors from "./PromiseInterceptors.provider";
+import PromiseInterceptors from "./requestPipe/PromiseInterceptors.provider";
 
+/**
+ * @todo 功能細部拆分，秉持單一職責
+ * @todo 配置的繼承，Service Factory 只處理到 Service 節點的繼承，這裡要實現 API 節點與 Final API Config 配置的繼承
+ */
 @Injectable()
 export default class APIFactory {
   #ajax?: RequestHandler;
 
-  /**
-   * 初始化網路請求 strategy
-   */
+  /** 初始化網路請求 strategy */
   #useAjaxStrategy() {
     if (typeof XMLHttpRequest !== "undefined") {
       this.#ajax = this.xhr;
@@ -36,9 +38,9 @@ export default class APIFactory {
     this.#useAjaxStrategy();
   }
 
-  createAPI(apiConfig?: ApiConfig, defaultConfig?: RequestConfig) {
-    const copy = deepClone(defaultConfig) ?? {};
-    const _copy = Object.assign(copy, apiConfig) as ApiConfig & RequestConfig;
+  createAPI(apiConfig?: ServiceApiConfig, inheritConfig?: InheritConfig | RequestConfig) {
+    const copy = deepClone(inheritConfig) ?? {};
+    const _copy = Object.assign(copy, apiConfig) as ServiceApiConfig & RequestConfig;
     const {
       auth,
       headers,
@@ -52,7 +54,7 @@ export default class APIFactory {
       rules,
       validation,
       cache,
-      interceptor,
+      // cacheLifetime,
       url, // inherit 下來時，就已經組成完整的 url 了
     } = _copy;
 
@@ -98,24 +100,26 @@ export default class APIFactory {
         throw new Error("Request failed");
       }
 
-      const { requestToken, request, abortController, config } = ajax;
+      const { request } = ajax;
 
       let requestHandler = request;
 
-      requestHandler = this.promiseInterceptors.subscribe(requestToken, request, {
+      if (requestConfig?.cache ?? cache) {
+        requestHandler = this.cacheManager.chain(ajax, payload);
+
+        ajax.request = requestHandler;
+      }
+
+      requestHandler = this.promiseInterceptors.chain(ajax, {
         serviceConfig: _copy.interceptor,
         apiRuntime: interceptor,
       });
 
-      if (requestConfig?.cache ?? cache) {
-        requestHandler = this.cacheManager.subscribe(requestToken, requestHandler, payload);
-      }
-
-      return [requestHandler, abortController];
+      return requestHandler();
     };
   }
 
-  #paramDeclarationDestructor(param?: ParameterDeclaration): [param: string[], description: string[]] {
+  #paramDeclarationDestructor(param?: ParamDef): [param: string[], description: string[]] {
     if (!param) {
       return [[], []];
     }
@@ -137,7 +141,7 @@ export default class APIFactory {
     }
   }
 
-  #paramBuilder(url: string, payload: Payload, param?: ParameterDeclaration, query?: ParameterDeclaration) {
+  #paramBuilder(url: string, payload: Payload, param?: ParamDef, query?: ParamDef) {
     if (typeof payload !== "object" || payload === null) {
       return;
     }
@@ -176,7 +180,5 @@ export default class APIFactory {
     return resolveURL([url, ..._param], _query);
   }
 
-  #hasPromiseStageHooks(interceptor: ServiceInterceptor) {
-    return "onRequest" in interceptor || "onRequestFailed" in interceptor || "onRequestSucceed" in interceptor;
-  }
+  #validationEngine() {}
 }

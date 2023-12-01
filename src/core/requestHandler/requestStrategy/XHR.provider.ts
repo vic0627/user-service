@@ -4,10 +4,11 @@ import type {
   HttpResponse,
   PromiseExecutor,
   RequestConfig,
+  RequestExecutor,
 } from "src/types/xhr.type";
 import { symbolToken } from "src/utils/common";
 import RequestHandler from "src/abstract/RequestHandler.abstract";
-import RequestError from "./RequestError";
+import RequestError from "../RequestError";
 
 /**
  * # 處理請求的物件
@@ -31,34 +32,25 @@ export default class XHR implements RequestHandler {
 
     xhr.open(_method, url, true);
 
-    /**
-     * 設置 xhr 的生命週期，返回：
-     * 1. `requestObject` - Promise，想拿到 response 或 reject reason 要 await 它，不用再呼叫它。
-     * 2. `abortController` - 取消請求控制器。
-     */
-    const { requestObject, abortController } = this.#httpHooksEncapsulation(xhr, cleanup, config);
+    const { requestObject, executor } = this.#httpHooksEncapsulation(xhr, cleanup, config);
 
     this.#setTimeout(xhr, timeout);
     this.#setAuthentication(xhr, auth);
     this.#setRequestHeader(xhr, headers);
     this.#setResType(xhr, responseType);
 
-    /**
-     * 請求發送器
-     * @returns 網路請求的 Promise
-     */
-    const request = () => {
+    const request: RequestExecutor = (onRequest) => {
       if (xhr) {
         xhr.send((payload as XMLHttpRequestBodyInit) ?? null);
       }
 
-      return requestObject;
+      return requestObject(onRequest);
     };
 
     return {
       requestToken,
       request,
-      abortController,
+      executor,
       config,
     };
   }
@@ -127,46 +119,71 @@ export default class XHR implements RequestHandler {
    * @returns 請求的 Promise 物件與請求終止器
    */
   #httpHooksEncapsulation(xhr: XMLHttpRequest, cleanup: () => void, config: RequestConfig) {
-    /** 取消請求控制器 */
-    let abortController: () => void = () => {
-      // 預設為取消失敗的警語
-      console.warn("Abort failed");
+    /**
+     * Promise 的決行(解除 pending)函式
+     * @default cleanup xhr 清除函式
+     */
+    let executor: PromiseExecutor = { resolve: cleanup, reject: cleanup };
+
+    const requestObject: RequestExecutor = (onRequest) => {
+      let abortController: () => void = () => {
+        // 預設為取消失敗的警語
+        console.warn("Abort failed");
+      };
+
+      /** 回傳結果的 Promise */
+      const requestPromise = new Promise<HttpResponse | void>((_resolve, _reject) => {
+        const hasOnRequest = typeof onRequest === "function";
+
+        let timer: number;
+
+        if (hasOnRequest) {
+          timer = setInterval(onRequest, 50);
+        }
+
+        const clearTime = () => {
+          if (timer) {
+            clearInterval(timer);
+          }
+        };
+
+        const resolve = (value: HttpResponse) => {
+          // console.log("root Promise resolve func called");
+          clearTime();
+          cleanup();
+          _resolve(value);
+        };
+
+        const reject = (reason?: unknown) => {
+          clearTime();
+          cleanup();
+          _reject(reason);
+        };
+
+        abortController = (reason?: unknown) => {
+          xhr && xhr.abort();
+          reject(reason);
+        };
+
+        executor = { resolve, reject };
+
+        xhr.onloadend = this.#handlerFactory(xhr, config, executor, this.#handleLoadend);
+        xhr.onabort = this.#handlerFactory(xhr, config, executor, this.#handleAbort);
+        xhr.ontimeout = this.#handlerFactory(xhr, config, executor, this.#handleTimeout);
+        xhr.onerror = this.#handlerFactory(xhr, config, executor, this.#handleError);
+      }).catch((error) => {
+        /** @todo 控制權轉移 */
+        if (typeof error === "string") {
+          throw new RequestError(error);
+        } else {
+          throw error as Error;
+        }
+      });
+
+      return [requestPromise, abortController];
     };
 
-    /** 回傳結果的 Promise */
-    const requestObject = new Promise<HttpResponse | void>((_resolve, _reject) => {
-      const resolve = (value: HttpResponse) => {
-        cleanup();
-        _resolve(value);
-      };
-
-      const reject = (reason?: unknown) => {
-        cleanup();
-        _reject(reason);
-      };
-
-      abortController = (reason?: unknown) => {
-        xhr && xhr.abort();
-        reject(reason);
-      };
-
-      const executor = { resolve, reject, config };
-
-      xhr.onloadend = this.#handlerFactory(xhr, executor, this.#handleLoadend);
-      xhr.onabort = this.#handlerFactory(xhr, executor, this.#handleAbort);
-      xhr.ontimeout = this.#handlerFactory(xhr, executor, this.#handleTimeout);
-      xhr.onerror = this.#handlerFactory(xhr, executor, this.#handleError);
-    }).catch((error) => {
-      /** @todo 控制權轉移 */
-      //   console.error(error);
-      if (typeof error === "string") {
-        throw new RequestError(error);
-      } else {
-        throw error as Error;
-      }
-    });
-
-    return { requestObject, abortController };
+    return { requestObject, executor };
   }
 
   /**
@@ -179,17 +196,18 @@ export default class XHR implements RequestHandler {
    */
   #handlerFactory(
     xhr: XMLHttpRequest,
+    config: RequestConfig,
     executor: PromiseExecutor,
-    handler: (e: ProgressEvent | Event, xhr: XMLHttpRequest, executor: PromiseExecutor) => void,
+    handler: (e: ProgressEvent | Event, config: RequestConfig, xhr: XMLHttpRequest, executor: PromiseExecutor) => void,
   ) {
-    return (e: ProgressEvent | Event) => handler.call(this, e, xhr, executor);
+    return (e: ProgressEvent | Event) => handler.call(this, e, config, xhr, executor);
   }
 
-  #handleAbort(_: ProgressEvent | Event, xhr: XMLHttpRequest, { reject }: PromiseExecutor) {
+  #handleAbort(_: ProgressEvent | Event, __: RequestConfig, xhr: XMLHttpRequest, { reject }: PromiseExecutor) {
     xhr && reject(new RequestError("Request aborted"));
   }
 
-  #handleTimeout(_: ProgressEvent | Event, xhr: XMLHttpRequest, { reject, config }: PromiseExecutor) {
+  #handleTimeout(_: ProgressEvent | Event, config: RequestConfig, xhr: XMLHttpRequest, { reject }: PromiseExecutor) {
     if (!xhr) {
       return;
     }
@@ -201,7 +219,7 @@ export default class XHR implements RequestHandler {
     reject(new RequestError(errMsg));
   }
 
-  #handleError(_: ProgressEvent | Event, xhr: XMLHttpRequest, { reject, config }: PromiseExecutor) {
+  #handleError(_: ProgressEvent | Event, config: RequestConfig, xhr: XMLHttpRequest, { reject }: PromiseExecutor) {
     if (!xhr) {
       return;
     }
@@ -212,7 +230,7 @@ export default class XHR implements RequestHandler {
     reject(new RequestError(`Network Error ${url} ${status}`));
   }
 
-  #handleLoadend(_: ProgressEvent | Event, xhr: XMLHttpRequest, { resolve, config }: PromiseExecutor) {
+  #handleLoadend(_: ProgressEvent | Event, config: RequestConfig, xhr: XMLHttpRequest, { resolve }: PromiseExecutor) {
     if (!xhr) {
       return;
     }
