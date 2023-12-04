@@ -15,6 +15,7 @@ import RuleError from "../validationEngine/RuleError";
 import CacheManager from "./requestPipe/CacheManager.provider";
 import RequestHandler from "src/abstract/RequestHandler.abstract";
 import PromiseInterceptors from "./requestPipe/PromiseInterceptors.provider";
+import ScheduledTask from "../scheduledTask/ScheduledTask.provider";
 
 /**
  * @todo 功能細部拆分，秉持單一職責
@@ -22,6 +23,7 @@ import PromiseInterceptors from "./requestPipe/PromiseInterceptors.provider";
  */
 @Injectable()
 export default class APIFactory {
+  /** 網路請求策略，依賴抽象 */
   #ajax?: RequestHandler;
 
   /** 初始化網路請求 strategy */
@@ -40,14 +42,13 @@ export default class APIFactory {
     private readonly xhr: XHR,
     private readonly cacheManager: CacheManager,
     private readonly promiseInterceptors: PromiseInterceptors,
+    private readonly schduledTask: ScheduledTask,
   ) {
     this.#useAjaxStrategy();
   }
 
   createAPI(apiConfig?: ServiceApiConfig, inheritConfig?: InheritConfig | RequestConfig) {
     const copy = this.#mergeConfig(inheritConfig, apiConfig) as ServiceApiConfig & RequestConfig;
-
-    // console.log(copy.name, copy.rules);
 
     const payloadTester = this.ruleObject.evaluate(copy.rules);
 
@@ -58,7 +59,6 @@ export default class APIFactory {
 
       const {
         interceptor = {},
-        url,
         method,
         auth,
         headerMap,
@@ -99,14 +99,15 @@ export default class APIFactory {
         onBeforeBuildingURL(payload, paramDef);
       }
 
-      const _url = this.#paramBuilder(url as string, payload, param, query);
+      let url = runtimeOverWrite.url;
+      url = this.#paramBuilder(url as string, payload, param, query);
 
       if (typeof onBeforeRequest === "function") {
         onBeforeRequest(payload, paramDef);
       }
 
       const ajax = this.#ajax?.request({
-        url: _url,
+        url,
         method,
         payload,
         auth,
@@ -126,7 +127,9 @@ export default class APIFactory {
       let requestHandler = request;
 
       if (cache) {
-        requestHandler = this.cacheManager.chain(ajax, payload);
+        requestHandler = this.cacheManager.chain(ajax, payload, cacheLifetime);
+
+        this.schduledTask.addSingletonTask("cache", this.cacheManager.schduledTask.bind(this.cacheManager));
 
         ajax.request = requestHandler;
       }

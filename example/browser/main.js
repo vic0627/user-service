@@ -26,7 +26,7 @@ const service = {
   responseType: "",
   headerMap: true,
   cache: false,
-  cacheLifetime: "2d",
+  // cacheLifetime: 1000 * 60 * 2,
   withCredentials: false,
   validation: true,
   interceptor: {

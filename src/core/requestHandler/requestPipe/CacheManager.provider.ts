@@ -17,13 +17,13 @@ export default class CacheManager implements RequestPipe {
   /** 暫存空間 */
   #heap = new Map<symbol, CacheData>();
 
-  chain({ requestToken, request, executor }: RequestDetail, payload: Payload) {
+  chain({ requestToken, request, executor }: RequestDetail, payload: Payload, cacheLifetime: number = 1000 * 60 * 3) {
     return ((onRequest) => {
       // 如果當前被呼叫的 API 存在暫存結果，就比較前後參數
       // 如果前後兩次參數相同，就返回暫存數據，直到參數不同
 
       /** 暫存結果 */
-      const cache = this.#cache({ requestToken, payload, executor });
+      const cache = this.#cache({ requestToken, payload, executor, cacheLifetime });
 
       if (cache) {
         return cache as RequestExecutorResult;
@@ -32,14 +32,30 @@ export default class CacheManager implements RequestPipe {
       const [response, abort] = request(onRequest);
 
       // 利用 Promise chaining 實現 middeware
-      const _request = response.then((res) => this.#chainingCallback({ requestToken, res, executor, payload }));
+      const _request = response.then((res) =>
+        this.#chainingCallback({ requestToken, res, executor, payload, cacheLifetime }),
+      );
 
       return [_request, abort];
     }) as RequestExecutor;
   }
 
+  schduledTask(now: number) {
+    if (!this.#heap.size) {
+      return true;
+    }
+
+    this.#heap.forEach(({ expiration }, token) => {
+      if (now > expiration) {
+        this.#delete(token);
+      }
+    });
+
+    return !this.#heap.size;
+  }
+
   /** 比較 payload 參數並返回暫存結果 */
-  #cache(options: { requestToken: symbol; payload: Payload; executor: PromiseExecutor }) {
+  #cache(options: { requestToken: symbol; payload: Payload; executor: PromiseExecutor; cacheLifetime: number }) {
     const { requestToken, payload, executor } = options;
 
     if (!this.#has(requestToken)) {
@@ -69,11 +85,12 @@ export default class CacheManager implements RequestPipe {
     payload: Payload;
     res: HttpResponse | void;
     executor: PromiseExecutor;
+    cacheLifetime: number;
   }) {
-    const { requestToken, payload, res, executor } = options;
+    const { requestToken, payload, res, executor, cacheLifetime } = options;
 
     if (typeof res === "object" && res !== null) {
-      this.#set(requestToken, { res, payload });
+      this.#set(requestToken, { res, payload, expiration: Date.now() + cacheLifetime });
 
       return res as HttpResponse;
     }
@@ -86,6 +103,10 @@ export default class CacheManager implements RequestPipe {
 
   #set(requestToken: symbol, cacheData: CacheData) {
     this.#heap.set(requestToken, cacheData);
+  }
+
+  #delete(requestToken: symbol) {
+    this.#heap.delete(requestToken);
   }
 
   #has(requestToken: symbol) {

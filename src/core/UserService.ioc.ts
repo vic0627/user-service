@@ -12,9 +12,10 @@ import ServiceFactory from "./serviceLayer/ServiceFactory.injectable";
 import APIFactory from "./requestHandler/APIFactory.injectable";
 import CacheManager from "./requestHandler/requestPipe/CacheManager.provider";
 import PromiseInterceptors from "./requestHandler/requestPipe/PromiseInterceptors.provider";
+import ScheduledTask from "./scheduledTask/ScheduledTask.provider";
 
 @IOCContainer({
-  provides: [TypeLib, Byte, ByteConvertor, XHR, CacheManager, PromiseInterceptors],
+  provides: [TypeLib, Byte, ByteConvertor, XHR, CacheManager, PromiseInterceptors, ScheduledTask],
   imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory],
 })
 class Module {
