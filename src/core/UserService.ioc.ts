@@ -1,15 +1,15 @@
+import type { ServiceConfigRoot } from "src/types/userService.type";
+import type { RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
+import type { TypeValidator } from "src/types/ruleLiteral.type";
 import IOCContainer from "../decorator/IOCContainer.decorator";
 import { Byte, ByteConvertor } from "../utils/Byte.provider";
 import TypeLib from "./validationEngine/TypeLib.provider";
 import StringRule from "./validationEngine/StringRule.injectable";
 import RuleArray from "./validationEngine/RuleArray.injectable";
-import { RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
-import { TypeValidator } from "src/types/ruleLiteral.type";
 import RuleObject from "./validationEngine/RuleObject.injectable";
 import XHR from "./requestHandler/requestStrategy/XHR.provider";
 import ServiceFactory from "./serviceLayer/ServiceFactory.injectable";
 import APIFactory from "./requestHandler/APIFactory.injectable";
-import { ServiceConfig } from "src/types/userService.type";
 import CacheManager from "./requestHandler/requestPipe/CacheManager.provider";
 import PromiseInterceptors from "./requestHandler/requestPipe/PromiseInterceptors.provider";
 
@@ -57,7 +57,7 @@ class Module {
     return this.ruleObject.omitRules(target, ...args);
   }
 
-  createService(serviceConfig: ServiceConfig) {
+  createService(serviceConfig: ServiceConfigRoot) {
     return this.serviceFactory.createService(serviceConfig);
   }
 }

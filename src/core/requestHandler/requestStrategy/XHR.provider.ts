@@ -1,4 +1,5 @@
 import type {
+  AllUserServiceResponseType,
   HeadersConfig,
   HttpAuthentication,
   HttpResponse,
@@ -70,8 +71,8 @@ export default class XHR implements RequestHandler {
    * @param xhr XMLHttpRequest instance
    * @param resType 響應類型
    */
-  #setResType(xhr: XMLHttpRequest, resType?: XMLHttpRequestResponseType) {
-    xhr.responseType = resType ?? "";
+  #setResType(xhr: XMLHttpRequest, resType?: AllUserServiceResponseType) {
+    xhr.responseType = (resType ?? "") as XMLHttpRequestResponseType;
   }
 
   /**
@@ -98,8 +99,8 @@ export default class XHR implements RequestHandler {
    * @param xhr XMLHttpRequest instance
    * @param auth username and password
    */
-  #setAuthentication(xhr: XMLHttpRequest, auth?: HttpAuthentication) {
-    const _auth = auth ?? ({} as HttpAuthentication);
+  #setAuthentication(xhr: XMLHttpRequest, auth?: Partial<HttpAuthentication>) {
+    const _auth = auth ?? {};
 
     if (!_auth) {
       return;
@@ -214,7 +215,11 @@ export default class XHR implements RequestHandler {
 
     const { timeout, timeoutErrorMessage } = config ?? {};
 
-    const errMsg = timeoutErrorMessage || timeout ? `time of ${timeout}ms exceeded` : "timeout exceeded";
+    let errMsg = timeout ? `time of ${timeout}ms exceeded` : "timeout exceeded";
+
+    if (timeoutErrorMessage) {
+      errMsg = timeoutErrorMessage;
+    }
 
     reject(new RequestError(errMsg));
   }

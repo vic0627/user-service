@@ -11,8 +11,13 @@ import Service from "./Service";
 import APIFactory from "../requestHandler/APIFactory.injectable";
 import { deepClone, notNull, resolveURL } from "src/utils/common";
 
+/**
+ * @todo 新增 `resolveURL.provider.ts` 來更嚴謹地處理路徑，包括解析、合併、拆散等功能
+ * @todo 新增 `decodeTime.provider.ts` 來轉換 `${days}d${hour}h${minute}m${second}s${millisecond}ms` 格式字串成
+ */
 @Injectable()
 export default class ServiceFactory {
+  /** 當前處理節點為根節點(有 baseURL 的節點) */
   #root = true;
 
   constructor(private readonly apiFactory: APIFactory) {}
@@ -68,8 +73,19 @@ export default class ServiceFactory {
   }
 
   #destructureConfig(serviceConfig: ServiceConfigRoot | ServiceConfigChild) {
-    const { validation, cache, headerMap, headers, auth, timeout, timeoutErrorMessage, responseType, interceptor } =
-      serviceConfig;
+    const {
+      validation,
+      cache,
+      cacheLifetime,
+      auth,
+      headers,
+      headerMap,
+      timeout,
+      timeoutErrorMessage,
+      responseType,
+      interceptor,
+      withCredentials,
+    } = serviceConfig;
 
     let _baseURL: string;
 
@@ -85,13 +101,15 @@ export default class ServiceFactory {
     const basicConfig = {
       validation,
       cache,
+      cacheLifetime,
       auth,
       headers,
+      headerMap,
       timeout,
       timeoutErrorMessage,
       responseType,
-      headerMap,
       interceptor,
+      withCredentials,
     };
 
     const nodeConfig = Object.assign({ baseURL: _baseURL }, basicConfig) as InheritConfig;
@@ -101,6 +119,10 @@ export default class ServiceFactory {
     return { nodeConfig, reqConfig };
   }
 
+  /**
+   * 路由守衛
+   * @description `baseURL` 僅能出現在根節點; `route` 僅能出現在子節點。
+   */
   #routeGuard(baseURL?: string, route?: string) {
     if (this.#root) {
       if (!baseURL || typeof baseURL !== "string") {
@@ -119,6 +141,9 @@ export default class ServiceFactory {
     }
   }
 
+  /**
+   * 取得路徑
+   */
   #getFirstRoute(route?: string) {
     if (!route) {
       return;
@@ -128,24 +153,22 @@ export default class ServiceFactory {
   }
 
   #buildAPI(service: Service, defaultConfig: RequestConfig, api?: ServiceApiConfig | ServiceApiConfig[]) {
-    if (Array.isArray(api)) {
-      api.forEach((config) => {
-        const value = this.apiFactory.createAPI(config, defaultConfig);
+    const build = (config: ServiceApiConfig) => {
+      const value = this.apiFactory.createAPI(config, defaultConfig);
 
-        if (!config.name) {
-          throw new Error("Name is required");
-        }
-
-        Object.defineProperty(service, config.name, { value });
-      });
-    } else if (typeof api === "object") {
-      const value = this.apiFactory.createAPI(api, defaultConfig);
-
-      if (!api.name) {
+      if (!config.name) {
         throw new Error("Name is required");
       }
 
-      Object.defineProperty(service, api.name, { value });
+      Object.defineProperty(service, config.name, { value });
+    };
+
+    if (Array.isArray(api)) {
+      api.forEach((config) => {
+        build(config);
+      });
+    } else if (typeof api === "object" && api !== null) {
+      build(api);
     }
   }
 
@@ -192,11 +215,6 @@ export default class ServiceFactory {
     const configCopy = deepClone(parentConfig);
 
     Object.assign(configCopy, child);
-
-    // delete configCopy.baseURL;
-    // delete configCopy.route;
-    // delete configCopy.api;
-    // delete configCopy.children;
 
     configCopy.url = url;
 

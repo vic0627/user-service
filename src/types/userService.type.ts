@@ -1,6 +1,12 @@
 import RuleError from "src/core/validationEngine/RuleError";
 import type { Payload, RuleObjectInterface } from "./ruleObject.type";
-import type { HttpMethod, HttpResponse, RequestConfig } from "./xhr.type";
+import type {
+  AllUserServiceResponseType,
+  HttpAuthentication,
+  HttpMethod,
+  HttpResponse,
+  RequestConfig,
+} from "./xhr.type";
 import RequestError from "src/core/requestHandler/RequestError";
 
 /**
@@ -85,6 +91,57 @@ export interface ServiceFuncConfig {
   interceptor?: ServiceInterceptor;
 }
 
+/**
+ * @todo 梨子 - HTTP 請求策略擴充參數
+ * @inherit 請求配置(node js 專屬)
+ */
+export interface ServiceRequestConfigForNodeJS {
+  /**
+   * 指定伺服器回應的編碼方式
+   * @default "utf-8"
+   */
+  responseEncoding?: string;
+  /**
+   * 指定 Cross-Site Request Forgery（CSRF）防護的 Cookie 名稱。
+   * @default "XSRF-TOKEN"
+   */
+  xsrfCookieName?: string;
+  /**
+   * 指定包含 CSRF Token 的 HTTP 頭名稱。
+   * @default "X-XSRF-TOKEN"
+   */
+  xsrfHeaderName?: string;
+  /**
+   * 指定請求和回應中允許的最大內容大小，
+   * 用來防止攻擊者通過大型請求或回應來進行拒絕服務（Denial of Service）攻擊。
+   */
+  maxContentLength?: number;
+  /** 指定請求主體的最大大小。 */
+  maxBodyLength?: number;
+  /** 指定允許的最大重新導向數量。 */
+  maxRedirects?: number;
+  /**
+   * 用於指定 Unix Socket 或 Windows Named Pipe 的路徑，以進行伺服器連接。
+   */
+  socketPath?: string;
+  /** 指定用於 HTTP 請求的代理。 */
+  httpAgent?: unknown;
+  /** 指定用於 HTTPS 請求的代理。 */
+  httpsAgent?: unknown;
+  /**  用於指定代理伺服器的相關設定，包括協議、主機、端口和驗證資訊。 */
+  proxy?: {
+    protocol: string;
+    host: string;
+    port: number;
+    auth: HttpAuthentication;
+  };
+  /**
+   *  用於指定是否應該自動解壓縮伺服器回應。
+   * @default true
+   */
+  decompress?: boolean;
+}
+
 /** @inherit 請求配置 */
 export interface ServiceRequestConfig {
   /**
@@ -95,18 +152,17 @@ export interface ServiceRequestConfig {
   /** 請求標頭 */
   headers?: Record<string, string>;
   /** 身分授權 */
-  auth?: {
-    username?: string;
-    password?: string;
-  };
+  auth?: Partial<HttpAuthentication>;
   /** 超時(ms) */
   timeout?: number;
   /** 超時錯誤訊息 */
   timeoutErrorMessage?: string;
   /** 響應類型 */
-  responseType?: XMLHttpRequestResponseType;
+  responseType?: AllUserServiceResponseType;
   /** 將響應標頭轉換為物件格式 */
   headerMap?: boolean;
+  /** 允許跨站請求 */
+  withCredentials?: boolean;
 }
 
 /** API 封裝配置 */

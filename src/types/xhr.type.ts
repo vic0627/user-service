@@ -1,4 +1,4 @@
-import { OnRequestCallback } from "./userService.type";
+import { OnRequestCallback, ServiceFuncConfig, ServiceRequestConfig } from "./userService.type";
 
 export type HttpMethod =
   | "get"
@@ -16,9 +16,9 @@ export type HttpMethod =
   | "patch"
   | "PATCH";
 
-export interface RequestHooks {
-  // on;
-}
+export type BrowserOnlyResponseType = "blob";
+
+export type AllUserServiceResponseType = XMLHttpRequestResponseType | "stream";
 
 export enum enumHttpMethod {
   GET = "GET",
@@ -57,16 +57,9 @@ export interface HeadersConfig {
   ["Authorization"]?: `Basic ${string}:${string}`;
 }
 
-export interface RequestConfig {
-  auth?: HttpAuthentication;
-  headers?: HeadersConfig;
-  timeout?: number;
-  timeoutErrorMessage?: string;
-  responseType?: XMLHttpRequestResponseType;
-  headerMap?: boolean;
+export interface RequestConfig extends ServiceRequestConfig, ServiceFuncConfig {
   url?: string;
   payload?: unknown;
-  method?: HttpMethod;
 }
 
 /** Promise pending 狀態的決行函式 */

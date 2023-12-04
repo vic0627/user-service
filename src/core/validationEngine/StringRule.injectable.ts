@@ -20,10 +20,16 @@ export default class StringRule {
     private readonly byteConvertor: ByteConvertor,
   ) {}
 
+  /**
+   * 是否為純粹的型別，不包含數量限制、陣列語法
+   */
   isPureType(rot: string) {
     return this.typeLib.has(rot);
   }
 
+  /**
+   * 是否含數量限制語法
+   */
   hasLimitation(rot: string) {
     const firstLimit = rot.indexOf(this.#limitSymbol);
     const lastLimit = rot.lastIndexOf(this.#limitSymbol);
@@ -39,6 +45,9 @@ export default class StringRule {
     throw new SyntaxError(`Bad limitation syntax '${rot}'.`);
   }
 
+  /**
+   * 是否含陣列語法
+   */
   hasArray(rot: string) {
     const LBracketIdx = rot.indexOf(this.#leftSquareBracket);
     const LBracketLastIdx = rot.lastIndexOf(this.#leftSquareBracket);
@@ -61,6 +70,9 @@ export default class StringRule {
     throw new SyntaxError(`Bad array syntax '${rot}'.`);
   }
 
+  /**
+   * 是否含範圍語法
+   */
   hasRange(rot: string) {
     const rangeIdx = rot.indexOf(this.#rangeSymbol);
     const rangeLastIdx = rot.lastIndexOf(this.#rangeSymbol);
@@ -76,11 +88,16 @@ export default class StringRule {
     throw new SyntaxError(`Bad range syntax '${rot}'.`);
   }
 
+  /**
+   * 評估參數規則
+   */
   evaluate(rule: ValidRule) {
+    // 1. 字串時，分析語法並轉譯成驗證函式
     if (typeof rule === "string") {
       return this.#evaluateRuleLiteral(rule);
     }
 
+    // 2. 函式時，驗證其參數及回傳值
     if (typeof rule === "function") {
       const { valid, msg } = rule("test", null) ?? {};
 
@@ -93,6 +110,7 @@ export default class StringRule {
       return rule;
     }
 
+    // 3. 正規表達式時，直接轉換成驗證函式
     if (rule instanceof RegExp) {
       return (param: string, value: unknown) => {
         const valid = rule.test(value as string);
@@ -102,46 +120,44 @@ export default class StringRule {
       };
     }
 
+    // 4. 不接受的格式
     throw new Error(`Invalid rule '${String(rule)}'.`);
   }
 
   /**
-   * main method to evaluate rot syntax
-   * @param rot rot syntax string
-   * @returns validation function
-   * @description Program flow:
-   * 1. trimming rot string
-   * 2. judging if rot is pure type or not
+   * 分析並評估規則字串語法的主要函式
    */
   #evaluateRuleLiteral(rot: RuleLiteral) {
+    // 1. 整理字串，排除所有空格並轉換為小寫
     rot = rot.replaceAll(" ", "");
     rot = rot.toLowerCase();
 
+    // 2. 純型別時，直接生成驗證器並返回
     if (this.isPureType(rot)) {
       return this.#validatorGenerator({ type: rot });
     }
 
+    // 3. 函其他語法時，先驗證是否有陣列語法
     return this.#arrayPipe(rot);
   }
 
+  /**
+   * 陣列語法分析管道
+   */
   #arrayPipe(rot: RuleLiteral) {
-    /**
-     * 1. Pass rot to limitation factory if it does not include array syntax.
-     */
+    // 1. 不含陣列語法，直接返回數量限制語法管道
     if (!this.hasArray(rot)) {
       return this.#limitationPipe(rot);
     }
 
-    /**
-     * 2. Destructure array syntax and pass the rest of the rot and information
-     * of array limitation to limitation factory.
-     */
+    // 2. 解構陣列語法
     const [_rot, _arrLimit] = rot.split(this.#leftSquareBracket);
 
     const arrLimit = _arrLimit.replace(this.#rightSquareBracket, "");
 
     const arrayOptions: Limitation = {};
 
+    // 2-1. 陣列含有範圍語法時，解構它
     if (this.hasRange(arrLimit)) {
       let min: string | number, max: string | number;
       [min, max] = arrLimit.split(this.#rangeSymbol) as string[];
@@ -166,25 +182,24 @@ export default class StringRule {
       if (!noMax || max || max === 0) {
         arrayOptions.max = max;
       }
-    } else if (!isNaN(+arrLimit)) {
+    } else if (!isNaN(+arrLimit) && arrLimit !== "") {
       arrayOptions.equal = +arrLimit;
     } else if (arrLimit !== "") {
       throw new SyntaxError("Bad array limitation.");
     }
 
+    // 3. 將剝除陣列語法後的規則語法、陣列配置，傳入數量限制語法管道
     return this.#limitationPipe(_rot, arrayOptions);
   }
 
+  /**
+   * 數量限制語法管道
+   */
   #limitationPipe(rot: RuleLiteral, arrayOptions?: Limitation) {
-    if (!this.hasLimitation(rot)) {
-      throw new SyntaxError("Bad rot syntax.");
-    }
-
-    /**
-     * 1. Destructure type syntax and its limitation
-     */
+    // 1. 解構數量限制語法
     const [type, limitation] = rot.split(this.#limitSymbol);
 
+    // 1-1. 判斷型別是否存在
     if (!this.isPureType(type)) {
       throw new SyntaxError(`Unexpected type '${type}'.`);
     }
@@ -203,9 +218,7 @@ export default class StringRule {
       target[targetKey] = limitValue;
     };
 
-    /**
-     * 2. Configure array options if it is exisited
-     */
+    // 2. 若有陣列配置時，將配置寫入結果
     if (arrayOptions) {
       const { min, max, equal } = arrayOptions;
 
@@ -222,6 +235,7 @@ export default class StringRule {
       }
     }
 
+    // 3. 若沒有數量限制，直接返回生成驗證器，否則更新結果參數
     if (!limitation) {
       return this.#validatorGenerator(result);
     } else {
@@ -230,6 +244,7 @@ export default class StringRule {
 
     const { countable, allowBytes } = typeInfo;
 
+    // 3-1. 型別不可數時，拋出例外
     if (!countable) {
       throw new SyntaxError(`Type '${type}' is uncountable.`);
     }
@@ -238,6 +253,7 @@ export default class StringRule {
 
     const typeLimitation: Limitation = {};
 
+    // 4. 解構範圍語法
     if (hasRange) {
       let min: string | number | undefined, max: string | number | undefined;
       [min, max] = limitation.split(this.#rangeSymbol);
@@ -282,11 +298,15 @@ export default class StringRule {
       result.typeLimitation = typeLimitation;
     }
 
-    // console.log({ result });
+    // console.log({ type: result.type, result });
 
+    // 5. 返回驗證器生成
     return this.#validatorGenerator(result);
   }
 
+  /**
+   * 生成驗證器
+   */
   #validatorGenerator(options: Rule = { type: "any" }) {
     const {
       type,
@@ -362,6 +382,9 @@ export default class StringRule {
     return validator;
   }
 
+  /**
+   * 範圍驗證器
+   */
   #rangeValidator(value: unknown, measureUnit: string | null, limitation: Limitation, msg: string): RuleErrorOption {
     const { min, max, equal } = limitation;
 

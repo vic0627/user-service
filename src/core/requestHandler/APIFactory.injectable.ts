@@ -1,4 +1,10 @@
-import type { FinalApiConfig, InheritConfig, ParamDef, ServiceApiConfig } from "src/types/userService.type";
+import type {
+  FinalApiConfig,
+  InheritConfig,
+  ParamDef,
+  ServiceApiConfig,
+  ServiceInterceptor,
+} from "src/types/userService.type";
 import type { RequestConfig } from "src/types/xhr.type";
 import type { Payload } from "src/types/ruleObject.type";
 import XHR from "./requestStrategy/XHR.provider";
@@ -39,50 +45,65 @@ export default class APIFactory {
   }
 
   createAPI(apiConfig?: ServiceApiConfig, inheritConfig?: InheritConfig | RequestConfig) {
-    const copy = deepClone(inheritConfig) ?? {};
-    const _copy = Object.assign(copy, apiConfig) as ServiceApiConfig & RequestConfig;
-    const {
-      auth,
-      headers,
-      timeout,
-      timeoutErrorMessage,
-      responseType,
-      headerMap,
-      method,
-      query,
-      param,
-      rules,
-      validation,
-      cache,
-      // cacheLifetime,
-      url, // inherit 下來時，就已經組成完整的 url 了
-    } = _copy;
+    const copy = this.#mergeConfig(inheritConfig, apiConfig) as ServiceApiConfig & RequestConfig;
 
-    const payloadTester = this.ruleObject.evaluate(rules);
+    // console.log(copy.name, copy.rules);
+
+    const payloadTester = this.ruleObject.evaluate(copy.rules);
 
     return (payload: Payload = {}, requestConfig: FinalApiConfig = {}) => {
-      const { interceptor = {} } = requestConfig;
-      const { onBeforeValidation, onValidationFailed } = interceptor;
+      const runtimeOverWrite = this.#mergeConfig(copy, requestConfig) as ServiceApiConfig &
+        RequestConfig &
+        FinalApiConfig;
 
-      try {
-        if (typeof onBeforeValidation === "function") {
-          onBeforeValidation(payload);
-        }
+      const {
+        interceptor = {},
+        url,
+        method,
+        auth,
+        headerMap,
+        headers,
+        timeout,
+        timeoutErrorMessage,
+        responseType,
+        param,
+        query,
+        body,
+        validation,
+        cache,
+        cacheLifetime,
+      } = runtimeOverWrite;
 
-        if (validation) {
-          payloadTester(payload);
-        }
-      } catch (error) {
-        if (typeof onValidationFailed === "function") {
-          onValidationFailed(error as RuleError);
-        } else {
-          console.error(error);
-        }
+      // console.log(runtimeOverWrite);
 
-        return [() => {}, () => {}];
+      const { onBeforeBuildingURL, onBeforeRequest } = interceptor;
+
+      const exam = this.#validationEngine({
+        validation,
+        payload,
+        payloadTester,
+        interceptor,
+      });
+
+      if (exam) {
+        return exam;
+      }
+
+      const paramDef = {
+        param,
+        query,
+        body,
+      };
+
+      if (typeof onBeforeBuildingURL === "function") {
+        onBeforeBuildingURL(payload, paramDef);
       }
 
       const _url = this.#paramBuilder(url as string, payload, param, query);
+
+      if (typeof onBeforeRequest === "function") {
+        onBeforeRequest(payload, paramDef);
+      }
 
       const ajax = this.#ajax?.request({
         url: _url,
@@ -91,7 +112,7 @@ export default class APIFactory {
         auth,
         headers,
         headerMap,
-        timeout: requestConfig?.timeout ?? timeout,
+        timeout,
         timeoutErrorMessage,
         responseType,
       });
@@ -104,19 +125,24 @@ export default class APIFactory {
 
       let requestHandler = request;
 
-      if (requestConfig?.cache ?? cache) {
+      if (cache) {
         requestHandler = this.cacheManager.chain(ajax, payload);
 
         ajax.request = requestHandler;
       }
 
       requestHandler = this.promiseInterceptors.chain(ajax, {
-        serviceConfig: _copy.interceptor,
+        serviceConfig: copy.interceptor,
         apiRuntime: interceptor,
       });
 
       return requestHandler();
     };
+  }
+
+  #mergeConfig<T, K>(mainConfig?: T, viceConfig?: K) {
+    const copy = deepClone(mainConfig) ?? {};
+    return Object.assign(copy, viceConfig);
   }
 
   #paramDeclarationDestructor(param?: ParamDef): [param: string[], description: string[]] {
@@ -146,8 +172,8 @@ export default class APIFactory {
       return;
     }
 
-    const [paramKeys, paramDescription] = this.#paramDeclarationDestructor(param);
-    const [queryKeys, queryDescription] = this.#paramDeclarationDestructor(query);
+    const [paramKeys] = this.#paramDeclarationDestructor(param);
+    const [queryKeys] = this.#paramDeclarationDestructor(query);
 
     const builder = (o: string[], callback: (key: string, value: string | number) => void) => {
       o.forEach((key) => {
@@ -180,5 +206,31 @@ export default class APIFactory {
     return resolveURL([url, ..._param], _query);
   }
 
-  #validationEngine() {}
+  #validationEngine(options: {
+    validation?: boolean;
+    payload: Payload;
+    payloadTester: (payload: Payload) => void;
+    interceptor: ServiceInterceptor;
+  }) {
+    const { validation, payload, payloadTester, interceptor } = options;
+    const { onBeforeValidation, onValidationFailed } = interceptor;
+
+    try {
+      if (typeof onBeforeValidation === "function") {
+        onBeforeValidation(payload);
+      }
+
+      if (validation) {
+        payloadTester(payload);
+      }
+    } catch (error) {
+      if (typeof onValidationFailed === "function") {
+        onValidationFailed(error as RuleError);
+      } else {
+        console.error(error);
+      }
+
+      return [{}, () => {}];
+    }
+  }
 }

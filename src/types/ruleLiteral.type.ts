@@ -69,11 +69,17 @@ export interface TypeMetadata {
 }
 
 export type TypeDef = [
+  /** 型別名稱 */
   _type: BasicType,
+  /** 是否可數 */
   countable: boolean,
+  /** 可數屬性 */
   measureUnit: "length" | "size" | null,
+  /** 是否允許用 byte 作為單位 */
   allowBytes: boolean,
+  /** 型別原型 */
   proto: ClassSignature | null,
+  /** 型別驗證函式 */
   test: TypeValidator,
 ];
 
