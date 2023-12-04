@@ -75,24 +75,7 @@
               limit,
               sort: s.value,
             },
-            {
-              cache,
-              interceptor: {
-                onRequest: () => {
-                  console.log("time passing...", i.toFixed(2), "s");
-                  i += 0.05;
-                },
-                onRequestSucceed: (res) => {
-                  res.fromHooks = true;
-                  res.data = JSON.parse(res.data);
-                  console.log("get result from onRequestSucceed", res);
-                  return res;
-                },
-                onRequestFailed: (err) => {
-                  console.error(err, "from onRequestFailed");
-                },
-              },
-            },
+            { cache },
           );
 
           cancel = abortAllProds;

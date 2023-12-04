@@ -3,7 +3,7 @@ const { mergeRules, partialRules } = us;
 
 /** 以下為參數名稱及敘述 */
 
-const limitAndSortDescription = {
+export const limitAndSortDescription = {
   limit: "回傳商品數量限制，正整數",
   sort: "排序方式，預設升冪排列",
 };
@@ -14,7 +14,7 @@ const idDescription = {
 
 /** 以下為驗證規則物件 */
 
-const positiveInt = "int@1:"; // 正整數
+export const positiveInt = "int@1:"; // 正整數
 
 const productIdRule = { id: positiveInt };
 
@@ -34,7 +34,7 @@ const productDescription = {
   category: "商品分類",
 };
 
-const productQueryRules = {
+export const productQueryRules = {
   /** $ 開頭為非必要參數，仍可設定驗證規則，將在收到值時執行驗證。 */
   $limit: positiveInt,
   $sort: (_, val) => {
@@ -79,7 +79,7 @@ export default {
       name: "getAll",
       description: "取得所有商品訊息。",
       query: limitAndSortDescription,
-      rules: partialRules(productQueryRules),
+      rules: productQueryRules,
       cache: true,
     },
     /**
@@ -104,6 +104,7 @@ export default {
       name: "create",
       description: "新增商品。",
       method: "POST",
+      body: productDescription,
       rules: productRules,
     },
     /**
@@ -117,6 +118,7 @@ export default {
       description: "更新商品資訊(整體)。",
       method: "PUT",
       param: idDescription,
+      body: productDescription,
       rules: mergeRules(productRules, productIdRule),
     },
     /**
@@ -130,6 +132,7 @@ export default {
       description: "更新商品資訊(局部)。",
       method: "PATCH",
       param: idDescription,
+      body: productDescription,
       rules: mergeRules(partialRules(productRules), productIdRule),
     },
     /**
