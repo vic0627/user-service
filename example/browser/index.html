@@ -5,121 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script>
-      const socket = io();
-
-      socket.on("reload", () => {
-        console.log("Reloading...");
-        location.reload();
-      });
-    </script>
-    <style>
-      #b > img {
-        width: 50px;
-      }
-    </style>
+    <script src="./js/socket.js"></script>
+    <script src="./js/globals.js"></script>
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div>
-      <h2>取得商品</h2>
-      <p>快取：<button id="d"></button></p>
-      <p>
-        排序方式：
-        <select name="s" id="s">
-          <option value="asc">升冪</option>
-          <option value="desc">降冪</option>
-          <option value="abc">參數驗證測試</option>
-        </select>
-      </p>
-      <label for="n">
-        數量：
-        <input type="number" id="n" value="10" />
-      </label>
+    <div class="wrap">
+      <h1>User Service 使用範例</h1>
+      <div id="products" class="products">
+        <h2>商城 API</h2>
+        <div id="products_get_all" class="products_get_all"></div>
+        <div id="products_get_by_id" class="products_get_by_id"></div>
     </div>
-    <div style="margin-top: 20px">
-      <button id="a">點我發請求</button>
-      <button id="e">點我取消請求</button>
-    </div>
-    <div id="b"></div>
 
-    <script src="../../dist/user-service.js">
-      /* 這邊是 IIFE 的版本 */
+    <script src="./services/main.js" type="module">
+      /* 這邊是 esm 的版本的使用範例 */
     </script>
 
-    <script src="./main.js" type="module">
-      /* 這邊是 esm 的版本(含 client code) */
-    </script>
-
-    <script>
-      /**
-       * $ npm run dev:browser
-       * yes baby
-       */
-
-      let cache = true;
-
-      const print = () => {
-        d.innerText = cache;
-      };
-
-      print();
-
-      let cancel;
-
-      const fn = async (limit) => {
-        let i = 0;
-
-        try {
-          const [reqAllProds, abortAllProds] = $storeAPI.products.getAll(
-            {
-              limit,
-              sort: s.value,
-            },
-            { cache },
-          );
-
-          cancel = abortAllProds;
-
-          const res = await reqAllProds;
-
-          if (res?.status !== 200) throw new Error("Failed to get products");
-
-          const src = res.data.map((item) => item?.image);
-
-          b.innerHTML = "";
-
-          src.forEach((str) => {
-            const img = document.createElement("img");
-            img.src = str;
-            b.appendChild(img);
-          });
-        } catch (err) {
-          console.error(err, "capture inside fn");
-        }
-      };
-
-      a.addEventListener("click", async () => {
-        const num = n.value;
-
-        try {
-          await fn(Number(num) || 1);
-        } catch (error) {
-          console.error(error, "capture outside fn");
-        }
-      });
-
-      d.addEventListener("click", () => {
-        cache = !cache;
-        print();
-      });
-
-      e.addEventListener("click", async () => {
-        try {
-          if (typeof cancel === "function") cancel("安安~~");
-        } catch (error) {
-          console.error(error, "capture from calling abort controllor");
-        }
-      });
+    <script src="./index.js" type="module">
+      /* 這邊是 client code */
     </script>
   </body>
 </html>

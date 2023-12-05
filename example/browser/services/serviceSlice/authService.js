@@ -1,4 +1,4 @@
-import us from "../../dist/user-service.esm.js";
+import us from "../../../../dist/user-service.esm.js";
 const { defineIntersection } = us;
 
 /**

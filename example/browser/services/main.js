@@ -1,7 +1,8 @@
-import us from "../../dist/user-service.esm.js";
-import authService from "../services/authService.js";
-import productService from "../services/productService.js";
-import cartService from "./services/cartService.js";
+import us from "../../../dist/user-service.esm.js";
+import authService from "./serviceSlice/authService.js";
+import productService from "./serviceSlice/productService.js";
+import cartService from "./serviceSlice/cartService.js";
+import foolProof from "../js/components/foolProof.js";
 
 const { createService } = us;
 
@@ -9,35 +10,37 @@ const { createService } = us;
  * 非該 node level 限定的 Configuration 會往下(children, api)繼承，越 deep 的 config 權重越大。
  */
 
-/** @type {import("../../src/types/userService.type.js").ServiceConfigRoot} */
+/** @type {import("../../../src/types/userService.type.js").ServiceConfigRoot} */
 const service = {
   baseURL: "https://fakestoreapi.com/",
   name: "storeAPI",
   description:
     "FakeStoreAPI 是一個提供虛擬商店數據的開發者友好的公開 API。這個 API 提供了各種模擬真實電商環境中所需的端點，包括商品、購物車、訂單等，以方便開發者測試和開發電商相關的應用程式。",
   children: [productService, authService, cartService],
-  headers: {},
-  auth: {
-    username: "hello123",
-    password: "lkdsfhglhgoirw",
-  },
-  timeout: 0,
+  // headers: {},
+  // auth: {
+  //   username: "hello123",
+  //   password: "lkdsfhglhgoirw",
+  // },
+  // timeout: 0,
   timeoutErrorMessage: "超時囉",
-  responseType: "",
+  responseType: "text",
   headerMap: true,
-  cache: false,
+  // cache: false,
   // cacheLifetime: 1000 * 60 * 2,
   withCredentials: false,
   validation: true,
   interceptor: {
     // onBeforeValidation() {},
-    // onValidationFailed() {},
+    onValidationFailed(error) {
+      foolProof(error?.message);
+    },
     // onBeforeBuildingURL() {},
     // onBeforeRequest() {},
     // onRequest() {},
     // onRequestFailed() {},
     onRequestSucceed: (res) => {
-      res.fromHooks = true;
+      res.transformFromHooks = true;
       res.data = JSON.parse(res.data);
       console.log("get result from onRequestSucceed", res);
       return res;

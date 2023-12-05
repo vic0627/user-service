@@ -1,4 +1,4 @@
-import us from "../../dist/user-service.esm.js";
+import us from "../../../../dist/user-service.esm.js";
 const { mergeRules, partialRules } = us;
 
 /** 以下為參數名稱及敘述 */
@@ -26,6 +26,10 @@ const productRules = {
   category: "string", // 字串
 };
 
+const onBeforeRequest = (payload) => {
+  if (payload.image) payload.image = btoa(payload.image);
+};
+
 const productDescription = {
   title: "商品標題",
   price: "商品價格",
@@ -51,6 +55,7 @@ export const productQueryRules = {
   },
 };
 
+/** @type {import("../../../../src/types/userService.type.js").ServiceConfigChild} */
 export default {
   /**
    * 結合 baseURL 的完整 url 會是 https://fakestoreapi.com/products
@@ -93,6 +98,7 @@ export default {
       description: "依 id 取得單項商品訊息。",
       param: idDescription,
       rules: productIdRule,
+      cache: true,
     },
     /**
      * POST https://fakestoreapi.com/products
@@ -106,6 +112,9 @@ export default {
       method: "POST",
       body: productDescription,
       rules: productRules,
+      interceptor: {
+        onBeforeRequest,
+      },
     },
     /**
      * PUT https://fakestoreapi.com/products/:id
@@ -120,6 +129,9 @@ export default {
       param: idDescription,
       body: productDescription,
       rules: mergeRules(productRules, productIdRule),
+      interceptor: {
+        onBeforeRequest,
+      },
     },
     /**
      * PATCH https://fakestoreapi.com/products/:id
@@ -134,6 +146,9 @@ export default {
       param: idDescription,
       body: productDescription,
       rules: mergeRules(partialRules(productRules), productIdRule),
+      interceptor: {
+        onBeforeRequest,
+      },
     },
     /**
      * DELETE https://fakestoreapi.com/products/:id
@@ -166,7 +181,6 @@ export default {
       route: "categories",
       name: "getCategories",
       description: "取得所有商品種類。",
-      /** 若設定 cache(預設 false)，重複請求時若無參數變動將會返回上次所記錄的值 */
       cache: true,
     },
     {
