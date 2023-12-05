@@ -59,7 +59,7 @@ const init = async () => {
 
     const io = socket(server);
 
-    const watcher = chokidar.watch([getPath("../example"), getPath("../src")]);
+    const watcher = chokidar.watch([getPath("../example/browser"), getPath("../src")]);
 
     let connect, socketEvent;
 

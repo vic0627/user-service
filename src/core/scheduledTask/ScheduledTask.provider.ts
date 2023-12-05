@@ -68,15 +68,18 @@ export default class ScheduledTask {
   #runTasks() {
     // 1. 取得當前時間戳
     const now = Date.now();
+    // console.log("啟動排程");
 
     // 2. 遍歷排程清單
     this.#tasks.forEach((task, token) => {
       // 2-1. 執行任務並帶入時間戳後，取得取消任務信號
       const popSignal = task(now);
+      // console.log("排程檢查中");
 
       // 2-2. 收到信號時，將該任務從排程清單中剃除
       if (popSignal) {
         this.#tasks.delete(token);
+        // console.log("排程結束");
       }
     });
 

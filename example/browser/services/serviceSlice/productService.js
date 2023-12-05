@@ -28,6 +28,9 @@ const productRules = {
 
 const onBeforeRequest = (payload) => {
   if (payload.image) payload.image = btoa(payload.image);
+  const req = JSON.stringify(payload);
+  console.log(req);
+  return req;
 };
 
 const productDescription = {
@@ -68,6 +71,7 @@ export default {
   // name: "products",
 
   description: "獲取虛擬商店中的所有商品數據，包括商品名稱、價格、描述等詳細信息。",
+  // cacheLifetime: 1000 * 5,
 
   /**
    * api 為根據同層的 route 上的方法，可為 object literal(單一方法) 或 array(多個方法)

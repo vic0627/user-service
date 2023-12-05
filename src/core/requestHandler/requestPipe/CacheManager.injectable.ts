@@ -11,6 +11,7 @@ import { notNull } from "src/utils/common";
 import Injectable from "src/decorator/Injectable.decorator";
 import WebStorage from "./cacheStrategy/WebStorage.provider";
 import CacheStrategy from "src/abstract/CacheStrategy.abstract";
+import ScheduledTask from "src/core/scheduledTask/ScheduledTask.provider";
 
 /**
  * (pipe) 快取管理
@@ -30,7 +31,10 @@ export default class CacheManager implements RequestPipe {
     }
   }
 
-  constructor(private readonly webStorage: WebStorage) {
+  constructor(
+    private readonly webStorage: WebStorage,
+    private readonly scheduleTask: ScheduledTask,
+  ) {
     this.#initStrategy();
   }
 
@@ -55,15 +59,6 @@ export default class CacheManager implements RequestPipe {
 
       return [promise, abort];
     }) as RequestExecutor;
-  }
-
-  /** 快取排程任務 */
-  scheduledTask(now: number) {
-    if (!this.#heap) {
-      return false;
-    }
-
-    return this.#heap?.scheduledTask(now);
   }
 
   /** 比較 payload 參數並取得暫存結果 */
@@ -107,18 +102,17 @@ export default class CacheManager implements RequestPipe {
     executor: PromiseExecutor;
     cacheLifetime: number;
   }) {
-    const { requestToken, payload, res, executor, cacheLifetime } = options;
+    const { requestToken, payload, res, cacheLifetime } = options;
 
-    if (notNull(res)) {
+    if (notNull(res) && this.#heap) {
       this.#heap?.set(requestToken, { res, payload, expiration: Date.now() + cacheLifetime });
 
-      return res as HttpResponse;
+      this.scheduleTask.addSingletonTask("cache", this.#heap?.scheduledTask.bind(this.#heap));
+    } else {
+      console.warn("cache failed in unexpected circumstance");
     }
 
-    const rejectReason = "Request failed";
-    executor.reject(rejectReason);
-
-    throw new Error(rejectReason);
+    return res as HttpResponse;
   }
 
   /** 比較兩物件(payload)是否相同 */

@@ -15,7 +15,6 @@ import RuleError from "../validationEngine/RuleError";
 import CacheManager from "./requestPipe/CacheManager.injectable";
 import RequestHandler from "src/abstract/RequestHandler.abstract";
 import PromiseInterceptors from "./requestPipe/PromiseInterceptors.provider";
-import ScheduledTask from "../scheduledTask/ScheduledTask.provider";
 
 /**
  * @todo 功能細部拆分，秉持單一職責
@@ -40,8 +39,7 @@ export default class APIFactory {
     private readonly ruleObject: RuleObject,
     private readonly xhr: XHR,
     private readonly cacheManager: CacheManager,
-    private readonly promiseInterceptors: PromiseInterceptors,
-    private readonly scheduledTask: ScheduledTask,
+    private readonly promiseInterceptors: PromiseInterceptors
   ) {
     this.#useAjaxStrategy();
   }
@@ -116,6 +114,8 @@ export default class APIFactory {
       let url = runtimeOverWrite.url;
       url = this.#paramBuilder(url as string, payload, param, query);
 
+      // console.log(onBeforeRequest);
+
       if (typeof onBeforeRequest === "function") {
         onBeforeRequest(payload, paramDef);
       }
@@ -144,9 +144,6 @@ export default class APIFactory {
       if (cache) {
         requestHandler = this.cacheManager.chain(ajax, payload, cacheLifetime);
 
-        // 將快取加入排程檢查
-        this.scheduledTask.addSingletonTask("cache", this.cacheManager.scheduledTask.bind(this.cacheManager));
-
         ajax.request = requestHandler;
       }
 
@@ -161,6 +158,9 @@ export default class APIFactory {
     };
   }
 
+  /**
+   * @todo 物件深層繼承問題
+   */
   #mergeConfig<T, K>(mainConfig?: T, viceConfig?: K) {
     const copy = deepClone(mainConfig) ?? {};
     return Object.assign(copy, viceConfig);

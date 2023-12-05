@@ -10,12 +10,16 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <div class="wrap">
-      <h1>User Service 使用範例</h1>
-      <div id="products" class="products">
+    <div class="outer_wrap">
+      <div class="inner_wrap dev_ol">
+        <h1>User Service 使用範例</h1>
         <h2>商城 API</h2>
-        <div id="products_get_all" class="products_get_all"></div>
-        <div id="products_get_by_id" class="products_get_by_id"></div>
+        <div id="products" class="products">
+          <div id="products_get_all" class="products_get_all"></div>
+          <div id="products_get_by_id" class="products_get_by_id"></div>
+          <div id="products_create" class="products_create"></div>
+        </div>
+      </div>
     </div>
 
     <script src="./services/main.js" type="module">
