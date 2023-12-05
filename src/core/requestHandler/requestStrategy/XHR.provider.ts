@@ -18,7 +18,7 @@ import RequestError from "../RequestError";
  */
 export default class XHR implements RequestHandler {
   request(config: RequestConfig) {
-    const { url = "", method = "GET", payload, headers, auth, timeout, responseType } = config;
+    const { url = "", method = "GET", payload, headers, auth, timeout, responseType, withCredentials } = config;
 
     let xhr: XMLHttpRequest | null = new XMLHttpRequest();
 
@@ -39,6 +39,7 @@ export default class XHR implements RequestHandler {
     this.#setAuthentication(xhr, auth);
     this.#setRequestHeader(xhr, headers);
     this.#setResType(xhr, responseType);
+    xhr.withCredentials = !!withCredentials;
 
     const request: RequestExecutor = (onRequest) => {
       if (xhr) {
@@ -173,7 +174,6 @@ export default class XHR implements RequestHandler {
         xhr.ontimeout = this.#handlerFactory(xhr, config, executor, this.#handleTimeout);
         xhr.onerror = this.#handlerFactory(xhr, config, executor, this.#handleError);
       }).catch((error) => {
-        /** @todo 控制權轉移 */
         if (typeof error === "string") {
           throw new RequestError(error);
         } else {

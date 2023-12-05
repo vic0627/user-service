@@ -12,20 +12,26 @@ import APIFactory from "../requestHandler/APIFactory.injectable";
 import { deepClone, notNull, resolveURL } from "src/utils/common";
 
 /**
+ * 抽象層建立、配置繼承與複寫
  * @todo 新增 `resolveURL.provider.ts` 來更嚴謹地處理路徑，包括解析、合併、拆散等功能
  * @todo 新增 `decodeTime.provider.ts` 來轉換 `${days}d${hour}h${minute}m${second}s${millisecond}ms` 格式字串成
  */
 @Injectable()
 export default class ServiceFactory {
-  /** 當前處理節點為根節點(有 baseURL 的節點) */
+  /** 當前處理節點是否為根節點(有 baseURL 的節點) */
   #root = true;
 
   constructor(private readonly apiFactory: APIFactory) {}
 
   createService(serviceConfig: ServiceConfigRoot) {
+    // 先建構根節點
     return this.#buildServiceTree({ serviceConfig });
   }
 
+  /**
+   * 建立抽象層節點
+   * @description 節點將以有 `baseURL` 或 `route` 屬性的該層物件為基準建立，但若子節點(route)上只有一個 Final API，會將此 API 掛載至父層節點，將不另建節點。
+   */
   #buildServiceTree(config: {
     serviceConfig: ServiceConfigRoot | ServiceConfigChild;
     parent?: Service;
@@ -33,12 +39,12 @@ export default class ServiceFactory {
   }) {
     const { serviceConfig, parent, parentConfig = {} } = config;
 
+    // 1. 路由參數守衛
     this.#routeGuard((serviceConfig as ServiceConfigRoot).baseURL, (serviceConfig as ServiceConfigChild).route);
 
+    // 2. 配置繼承與複寫
     const parentConfigCopy = deepClone(parentConfig) as InheritConfig | {};
-
     const overwriteConfig = Object.assign(parentConfigCopy, serviceConfig) as OverwriteConfig;
-
     const {
       name,
       // description,
@@ -47,8 +53,10 @@ export default class ServiceFactory {
       route,
     } = overwriteConfig;
 
+    // 3. 解構配置
     const { nodeConfig, reqConfig } = this.#destructureConfig(overwriteConfig);
 
+    // 4. 建立 Service 抽象層節點
     const service = new Service();
 
     service._parent = parent;
@@ -65,10 +73,13 @@ export default class ServiceFactory {
 
     service._config = overwriteConfig;
 
+    // 5. 解析 API 配置
     this.#buildAPI(service, reqConfig, api);
 
+    // 6. 解析子路由
     this.#buildChildren(service, children, nodeConfig);
 
+    // 7. 返回節點實例
     return service;
   }
 
@@ -143,6 +154,7 @@ export default class ServiceFactory {
 
   /**
    * 取得路徑
+   * @todo 更安全的解析方式
    */
   #getFirstRoute(route?: string) {
     if (!route) {
@@ -152,6 +164,12 @@ export default class ServiceFactory {
     return route.split("/")[0];
   }
 
+  /**
+   * 建構 Final API
+   * @param service Service 節點實例
+   * @param defaultConfig 截至 Service 層的配置
+   * @param api Service 層的 API 配置
+   */
   #buildAPI(service: Service, defaultConfig: RequestConfig, api?: ServiceApiConfig | ServiceApiConfig[]) {
     const build = (config: ServiceApiConfig) => {
       const value = this.apiFactory.createAPI(config, defaultConfig);
@@ -172,7 +190,14 @@ export default class ServiceFactory {
     }
   }
 
+  /**
+   * 建構 Service 子節點
+   * @param service Service 節點實例
+   * @param children 子路由配置
+   * @param parentConfig 截至 Service 層的配置
+   */
   #buildChildren(service: Service, children?: ServiceConfigChild[], parentConfig?: InheritConfig) {
+    // 1. children 型別檢查
     if (!notNull(children)) {
       return;
     }
@@ -183,16 +208,19 @@ export default class ServiceFactory {
       throw new Error("Children must be an array");
     }
 
+    /** 辨別子路由是否只有一個方法的函式 */
     const singleMethod = (children: ServiceConfigChild) => !children?.children && !Array.isArray(children?.api);
 
     children.forEach((child) => {
       if (singleMethod(child)) {
+        // 2. 如果子路由只有一個方法，將它掛載到當前節點
         const { name, value } = this.#buildSingleMethod(child, parentConfig as InheritConfig);
 
         Object.defineProperty(service, name, {
           value,
         });
       } else {
+        // 3. 如果子路由有多個方法，另建 Service 節點，並將該節點掛載至此節點之下。
         const value = this.#buildServiceTree({
           serviceConfig: child,
           parent: service,
@@ -206,6 +234,11 @@ export default class ServiceFactory {
     });
   }
 
+  /**
+   * 由子路由配置層直接建立單個方法
+   * @param child 子路由配置
+   * @param parentConfig 上層 Service 的配置
+   */
   #buildSingleMethod(child: ServiceConfigChild, parentConfig: InheritConfig) {
     const { route, api } = child;
     const { baseURL } = parentConfig;

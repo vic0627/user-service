@@ -1,6 +1,10 @@
 import { InheritConfig } from "src/types/userService.type";
 import { notNull } from "src/utils/common";
 
+/**
+ * 抽象層節點
+ * @description 子路由節點、節點上的 Final API，都會掛載再它實例上
+ */
 export default class Service {
   _name?: string;
 

@@ -11,7 +11,7 @@ export interface InterceptorFrom {
 }
 
 export interface CacheData {
-  res: HttpResponse;
+  res: HttpResponse | void;
   payload: Payload;
   expiration: number;
 }

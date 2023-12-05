@@ -30,6 +30,12 @@ export enum enumHttpMethod {
   PATCH = "PATCH",
 }
 
+/** @todo 上傳/下載事件 */
+// export default interface XHRProgressHooks {
+//   onDownloadProgress: () => void;
+//   onUploadProgress: () => void;
+// }
+
 export type MimeString =
   | "text/plain"
   | "application/javascript"

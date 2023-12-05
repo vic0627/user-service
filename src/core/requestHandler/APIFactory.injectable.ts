@@ -12,14 +12,13 @@ import Injectable from "src/decorator/Injectable.decorator";
 import RuleObject from "../validationEngine/RuleObject.injectable";
 import { deepClone, resolveURL } from "src/utils/common";
 import RuleError from "../validationEngine/RuleError";
-import CacheManager from "./requestPipe/CacheManager.provider";
+import CacheManager from "./requestPipe/CacheManager.injectable";
 import RequestHandler from "src/abstract/RequestHandler.abstract";
 import PromiseInterceptors from "./requestPipe/PromiseInterceptors.provider";
 import ScheduledTask from "../scheduledTask/ScheduledTask.provider";
 
 /**
  * @todo 功能細部拆分，秉持單一職責
- * @todo 配置的繼承，Service Factory 只處理到 Service 節點的繼承，這裡要實現 API 節點與 Final API Config 配置的繼承
  */
 @Injectable()
 export default class APIFactory {
@@ -42,17 +41,32 @@ export default class APIFactory {
     private readonly xhr: XHR,
     private readonly cacheManager: CacheManager,
     private readonly promiseInterceptors: PromiseInterceptors,
-    private readonly schduledTask: ScheduledTask,
+    private readonly scheduledTask: ScheduledTask,
   ) {
     this.#useAjaxStrategy();
   }
 
+  /**
+   *
+   * @param apiConfig API 配置
+   * @param inheritConfig 其他從 service layer 繼承下來的配置
+   * @returns Final API
+   */
   createAPI(apiConfig?: ServiceApiConfig, inheritConfig?: InheritConfig | RequestConfig) {
+    // 1. 配置繼承與複寫(第一次)
     const copy = this.#mergeConfig(inheritConfig, apiConfig) as ServiceApiConfig & RequestConfig;
 
+    // 2. 取得參數驗證器
     const payloadTester = this.ruleObject.evaluate(copy.rules);
 
+    /**
+     * 3. 返回 Final API
+     * @description 此函式為最終使用者介面
+     * @param payload API 所需參數
+     * @param requestConfig runtime API 配置
+     */
     return (payload: Payload = {}, requestConfig: FinalApiConfig = {}) => {
+      // 4. 配置繼承與複寫(第二次)
       const runtimeOverWrite = this.#mergeConfig(copy, requestConfig) as ServiceApiConfig &
         RequestConfig &
         FinalApiConfig;
@@ -74,10 +88,9 @@ export default class APIFactory {
         cacheLifetime,
       } = runtimeOverWrite;
 
-      // console.log(runtimeOverWrite);
-
       const { onBeforeBuildingURL, onBeforeRequest } = interceptor;
 
+      // 5. 實現參數驗證及其生命週期
       const exam = this.#validationEngine({
         validation,
         payload,
@@ -99,6 +112,7 @@ export default class APIFactory {
         onBeforeBuildingURL(payload, paramDef);
       }
 
+      // 6. url 建構
       let url = runtimeOverWrite.url;
       url = this.#paramBuilder(url as string, payload, param, query);
 
@@ -106,6 +120,7 @@ export default class APIFactory {
         onBeforeRequest(payload, paramDef);
       }
 
+      // 7. 請求初始化
       const ajax = this.#ajax?.request({
         url,
         method,
@@ -122,23 +137,26 @@ export default class APIFactory {
         throw new Error("Request failed");
       }
 
-      const { request } = ajax;
+      // 8. Promise 管道串連
+      let requestHandler = ajax.request;
 
-      let requestHandler = request;
-
+      // 8-1. 快取管理管道
       if (cache) {
         requestHandler = this.cacheManager.chain(ajax, payload, cacheLifetime);
 
-        this.schduledTask.addSingletonTask("cache", this.cacheManager.schduledTask.bind(this.cacheManager));
+        // 將快取加入排程檢查
+        this.scheduledTask.addSingletonTask("cache", this.cacheManager.scheduledTask.bind(this.cacheManager));
 
         ajax.request = requestHandler;
       }
 
+      // 8-1. Promise 攔截器管道
       requestHandler = this.promiseInterceptors.chain(ajax, {
         serviceConfig: copy.interceptor,
         apiRuntime: interceptor,
       });
 
+      // 9. 返回 promise 與取消請求控制器
       return requestHandler();
     };
   }
