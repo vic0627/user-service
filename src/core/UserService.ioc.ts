@@ -1,6 +1,3 @@
-import type { ServiceConfigRoot } from "src/types/userService.type";
-import type { RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
-import type { TypeValidator } from "src/types/ruleLiteral.type";
 import IOCContainer from "../decorator/IOCContainer.decorator";
 import { Byte, ByteConvertor } from "../utils/Byte.provider";
 import TypeLib from "./validationEngine/TypeLib.provider";
@@ -20,48 +17,12 @@ import WebStorage from "./requestHandler/requestPipe/cacheStrategy/WebStorage.pr
   imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory, CacheManager],
 })
 class Module {
-  constructor(
-    private readonly ruleArray: RuleArray,
-    private readonly typeLib: TypeLib,
-    private readonly ruleObject: RuleObject,
-    private readonly serviceFactory: ServiceFactory,
-  ) {}
-
-  defineType(type: string, validator: TypeValidator) {
-    return this.typeLib.defineType(type, validator);
-  }
-
-  defineUnion(...rules: ValidRule[]) {
-    return this.ruleArray.defineUnion(...rules);
-  }
-
-  defineIntersection(...rules: ValidRule[]) {
-    return this.ruleArray.defineIntersection(...rules);
-  }
-
-  mergeRules(...targets: RuleObjectInterface[]) {
-    return this.ruleObject.mergeRules(...targets);
-  }
-
-  partialRules(target: RuleObjectInterface) {
-    return this.ruleObject.partialRules(target);
-  }
-
-  requiredRules(target: RuleObjectInterface) {
-    return this.ruleObject.requiredRules(target);
-  }
-
-  pickRules(target: RuleObjectInterface, ...args: string[]) {
-    return this.ruleObject.pickRules(target, ...args);
-  }
-
-  omitRules(target: RuleObjectInterface, ...args: string[]) {
-    return this.ruleObject.omitRules(target, ...args);
-  }
-
-  createService(serviceConfig: ServiceConfigRoot) {
-    return this.serviceFactory.createService(serviceConfig);
-  }
+  // 有 @Expose() 的模組
+  TypeLib?: TypeLib;
+  RuleArray?: RuleArray;
+  RuleObject?: RuleObject;
+  ServiceFactory?: ServiceFactory;
+  ScheduledTask?: ScheduledTask;
 }
 
-export default new Module({} as RuleArray, {} as TypeLib, {} as RuleObject, {} as ServiceFactory);
+export default Module;

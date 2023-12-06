@@ -12,10 +12,23 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
 
   return (target) => {
     /**
+     * 需要直接暴露在 IoC 容器實例上的功能模組
+     */
+    const exposeModules = new Map<string, {}>();
+
+    /**
      * provides 的 token 與實例陣列
      */
-    const providers = (provides?.map((slice: ClassSignature) => [Symbol.for(slice.toString()), new slice()]) ??
-      []) as Provider[];
+    const providers = (provides?.map((slice: ClassSignature) => {
+      const expose = (Reflect.getMetadata(META_EXPOSE, slice) ?? "") as string;
+      const value = new slice();
+
+      if (expose) {
+        exposeModules.set(expose, value);
+      }
+
+      return [Symbol.for(slice.toString()), value];
+    }) ?? []) as Provider[];
 
     /**
      * imports 的 token、建構函數與其所需依賴
@@ -51,10 +64,6 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
      * 等待建立的實例
      */
     const queue = new Map(importers);
-    /**
-     * 需要直接暴露在 IoC 容器實例上的功能模組
-     */
-    const exposeModules = new Map<string, {}>();
 
     /**
      * 當還有未被建立實例的類，就持續遍歷 queue
@@ -130,8 +139,6 @@ export default function IOCContainer(options: IOCOptions = {}): ClassDecorator {
         exposeModules.forEach((value, name) => {
           Object.defineProperty(this, name, {
             value,
-            writable: false,
-            configurable: false,
           });
         });
       }

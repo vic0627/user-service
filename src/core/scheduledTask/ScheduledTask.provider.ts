@@ -1,17 +1,33 @@
 import type { Task } from "src/types/scheduledTask.type";
 import { notNull } from "src/utils/common";
+import Service from "../serviceLayer/Service";
+import Expose from "src/decorator/Expose.decorator";
 
 /** 排程管理器 */
+@Expose()
 export default class ScheduledTask {
   /** 任務清單 */
   #tasks = new Map<string, Task>();
   /** 排程計時器的 id，當此參數為 `undefined` 時，結束排程任務 */
   #timer?: number;
+  /** 排程任務的執行間隔 */
+  #interval: number = 1000 * 60 * 10;
 
   /** 排程任務的執行間隔 */
   get interval() {
-    return 1000 * 60 * 10;
-    // return 1000 * 10;
+    return this.#interval;
+  }
+
+  execute() {
+    this.#runTasks();
+  }
+
+  setInterval(interval?: number, service?: Service) {
+    if (!notNull(interval) || (interval as number) <= 0 || service?._parent) {
+      return;
+    }
+
+    this.#interval = interval as number;
   }
 
   /**
@@ -51,6 +67,8 @@ export default class ScheduledTask {
     if (notNull(this.#timer)) {
       return;
     }
+
+    // console.log("排程開始");
 
     // 2. 排程計時器初始化
     this.#timer = setInterval(() => {

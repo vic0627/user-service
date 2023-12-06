@@ -10,18 +10,24 @@ import Injectable from "src/decorator/Injectable.decorator";
 import Service from "./Service";
 import APIFactory from "../requestHandler/APIFactory.injectable";
 import { deepClone, notNull, resolveURL } from "src/utils/common";
+import Expose from "src/decorator/Expose.decorator";
+import ScheduledTask from "../scheduledTask/ScheduledTask.provider";
 
 /**
  * 抽象層建立、配置繼承與複寫
  * @todo 新增 `resolveURL.provider.ts` 來更嚴謹地處理路徑，包括解析、合併、拆散等功能
  * @todo 新增 `decodeTime.provider.ts` 來轉換 `${days}d${hour}h${minute}m${second}s${millisecond}ms` 格式字串成
  */
+@Expose()
 @Injectable()
 export default class ServiceFactory {
   /** 當前處理節點是否為根節點(有 baseURL 的節點) */
   #root = true;
 
-  constructor(private readonly apiFactory: APIFactory) {}
+  constructor(
+    private readonly apiFactory: APIFactory,
+    private readonly scheduledTask: ScheduledTask,
+  ) {}
 
   createService(serviceConfig: ServiceConfigRoot) {
     // 先建構根節點
@@ -44,13 +50,17 @@ export default class ServiceFactory {
 
     // 2. 配置繼承與複寫
     const parentConfigCopy = deepClone(parentConfig) as InheritConfig | {};
+    // const parentInterceptor = deepClone((parentConfigCopy as InheritConfig)?.interceptor ?? {});
+    // const interceptor = Object.assign(parentInterceptor, serviceConfig?.interceptor);
     const overwriteConfig = Object.assign(parentConfigCopy, serviceConfig) as OverwriteConfig;
+    // overwriteConfig.interceptor = interceptor;
     const {
       name,
       // description,
       api,
       children,
       route,
+      scheduledInterval,
     } = overwriteConfig;
 
     // 3. 解構配置
@@ -62,6 +72,8 @@ export default class ServiceFactory {
     service._parent = parent;
 
     if (this.#root) {
+      this.scheduledTask.setInterval(scheduledInterval, service);
+
       service._name = name;
     } else {
       service._name = name ?? this.#getFirstRoute(route);
@@ -94,8 +106,14 @@ export default class ServiceFactory {
       timeout,
       timeoutErrorMessage,
       responseType,
-      interceptor,
       withCredentials,
+      onBeforeValidation,
+      onValidationFailed,
+      onBeforeBuildingURL,
+      onBeforeRequest,
+      onRequest,
+      onRequestFailed,
+      onRequestSucceed,
     } = serviceConfig;
 
     let _baseURL: string;
@@ -119,8 +137,14 @@ export default class ServiceFactory {
       timeout,
       timeoutErrorMessage,
       responseType,
-      interceptor,
       withCredentials,
+      onBeforeValidation,
+      onValidationFailed,
+      onBeforeBuildingURL,
+      onBeforeRequest,
+      onRequest,
+      onRequestFailed,
+      onRequestSucceed,
     };
 
     const nodeConfig = Object.assign({ baseURL: _baseURL }, basicConfig) as InheritConfig;

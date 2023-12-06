@@ -67,14 +67,14 @@ export interface RequestHooks extends PromiseStageHooks {
   /** 建構完整 URL 前 */
   onBeforeBuildingURL?: (payload: Payload, paramDef: ParamDefGroup) => void;
   /** 發送請求前 */
-  onBeforeRequest?: (payload: Payload, paramDef: ParamDefGroup) => void;
+  onBeforeRequest?: (payload: Payload, paramDef: ParamDefGroup) => any;
 }
 
 /** fianl api 所有攔截器 */
 export interface ServiceInterceptor extends ValidationHooks, RequestHooks {}
 
 /** @inherit 抽象層功能 */
-export interface ServiceFuncConfig {
+export interface ServiceFuncConfig extends ServiceInterceptor {
   /**
    * 啟用 runtime 參數驗證
    * @default false
@@ -87,8 +87,6 @@ export interface ServiceFuncConfig {
   cache?: boolean;
   /** 快取暫存時限 */
   cacheLifetime?: number;
-  /** 攔截器 */
-  interceptor?: ServiceInterceptor;
 }
 
 /**
@@ -177,7 +175,7 @@ export interface ServiceApiConfig extends ParamDefGroup, ServiceFuncConfig, Serv
 
 /** 服務根節點配置 */
 export interface ServiceConfigRoot extends ServiceFuncConfig, Omit<ServiceRequestConfig, "method"> {
-  /** 基本 URL */
+  /** 基本 URL (根節點限定) */
   baseURL: string;
   /** 服務名稱 */
   name: string;
@@ -187,12 +185,20 @@ export interface ServiceConfigRoot extends ServiceFuncConfig, Omit<ServiceReques
   api?: ServiceApiConfig | ServiceApiConfig[];
   /** 子路由配置 */
   children?: ServiceConfigChild[];
+  /** 排程任務時間間隔(根節點限定) */
+  scheduledInterval?: number;
 }
 
 /** 服務子節點配置 */
 export interface ServiceConfigChild extends Omit<ServiceConfigRoot, "baseURL" | "name"> {
-  /** 路由 */
+  /**
+   * 路由(子節點限定)
+   * @description 可含多層路徑(ex. `auth/login`)，此時若沒有 `name`，取 `auth` 作為 `name`。
+   */
   route: string;
-  /** final API 路由名稱 */
+  /**
+   * 子節點名稱
+   * @description 沒有就用 `route`，若 `route` 有多層路徑時，使用第一層。
+   */
   name?: string;
 }

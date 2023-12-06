@@ -1,6 +1,5 @@
 import type { RequestDetail, RequestExecutor } from "src/types/xhr.type";
 import type { PromiseStageHooks } from "src/types/userService.type";
-import type { InterceptorFrom } from "src/types/requestPipe.type";
 import RequestError from "../RequestError";
 import RequestPipe from "src/abstract/RequestPipe.abstract";
 import { deepClone } from "src/utils/common";
@@ -9,26 +8,8 @@ import { deepClone } from "src/utils/common";
  * (pipe) Promise 階段的攔截器
  */
 export default class PromiseInterceptors implements RequestPipe {
-  chain({ request }: RequestDetail, interceptorsFrom: InterceptorFrom = {}): RequestExecutor {
-    const interceptors = this.#getInterceptors(interceptorsFrom);
-
-    return this.#injectInterceptors(request, interceptors);
-  }
-
-  /** 比較配置層級權重，返回要套用的攔截器 */
-  #getInterceptors(interceptorsFrom: InterceptorFrom): PromiseStageHooks {
-    const { serviceConfig = {}, apiRuntime = {} } = interceptorsFrom;
-
-    const onRequest = apiRuntime.onRequest ?? serviceConfig.onRequest;
-    const onRequestFailed = apiRuntime.onRequestFailed ?? serviceConfig.onRequestFailed;
-    const onRequestSucceed = apiRuntime.onRequestSucceed ?? serviceConfig.onRequestSucceed;
-
-    return { onRequest, onRequestFailed, onRequestSucceed };
-  }
-
-  /** 注入攔截器 */
-  #injectInterceptors(request: RequestExecutor, interceptors: PromiseStageHooks) {
-    const { onRequest, onRequestFailed, onRequestSucceed } = interceptors;
+  chain({ request }: RequestDetail, promiseInterceptor: PromiseStageHooks = {}): RequestExecutor {
+    const { onRequest, onRequestFailed, onRequestSucceed } = promiseInterceptor;
 
     // RequestExecutor 不再帶參數，將 onRequest 鎖定在這個 pipe 實現
     // 後續再傳任和東西進 RequestExecutor 都不會產生效果

@@ -17,6 +17,7 @@ import RequestHandler from "src/abstract/RequestHandler.abstract";
 import PromiseInterceptors from "./requestPipe/PromiseInterceptors.provider";
 
 /**
+ * 產出 **最終使用者介面(Final API)** 的工廠。
  * @todo 功能細部拆分，秉持單一職責
  */
 @Injectable()
@@ -39,13 +40,13 @@ export default class APIFactory {
     private readonly ruleObject: RuleObject,
     private readonly xhr: XHR,
     private readonly cacheManager: CacheManager,
-    private readonly promiseInterceptors: PromiseInterceptors
+    private readonly promiseInterceptors: PromiseInterceptors,
   ) {
     this.#useAjaxStrategy();
   }
 
   /**
-   *
+   * 建立 Final API
    * @param apiConfig API 配置
    * @param inheritConfig 其他從 service layer 繼承下來的配置
    * @returns Final API
@@ -70,7 +71,6 @@ export default class APIFactory {
         FinalApiConfig;
 
       const {
-        interceptor = {},
         method,
         auth,
         headerMap,
@@ -84,16 +84,26 @@ export default class APIFactory {
         validation,
         cache,
         cacheLifetime,
+        onBeforeValidation,
+        onValidationFailed,
+        onBeforeBuildingURL,
+        onBeforeRequest,
+        onRequest,
+        onRequestFailed,
+        onRequestSucceed,
       } = runtimeOverWrite;
 
-      const { onBeforeBuildingURL, onBeforeRequest } = interceptor;
+      /** 參數驗證週期攔截器 */
+      const validationStageInterceptor = { onBeforeValidation, onValidationFailed };
+      /** Promise 週期攔截器 */
+      const promiseStageInterceptor = { onRequest, onRequestFailed, onRequestSucceed };
 
       // 5. 實現參數驗證及其生命週期
       const exam = this.#validationEngine({
         validation,
         payload,
         payloadTester,
-        interceptor,
+        interceptor: validationStageInterceptor,
       });
 
       if (exam) {
@@ -114,17 +124,17 @@ export default class APIFactory {
       let url = runtimeOverWrite.url;
       url = this.#paramBuilder(url as string, payload, param, query);
 
-      // console.log(onBeforeRequest);
+      let _payload;
 
       if (typeof onBeforeRequest === "function") {
-        onBeforeRequest(payload, paramDef);
+        _payload = onBeforeRequest(payload, paramDef);
       }
 
       // 7. 請求初始化
       const ajax = this.#ajax?.request({
         url,
         method,
-        payload,
+        payload: _payload || payload,
         auth,
         headers,
         headerMap,
@@ -148,22 +158,18 @@ export default class APIFactory {
       }
 
       // 8-1. Promise 攔截器管道
-      requestHandler = this.promiseInterceptors.chain(ajax, {
-        serviceConfig: copy.interceptor,
-        apiRuntime: interceptor,
-      });
+      requestHandler = this.promiseInterceptors.chain(ajax, promiseStageInterceptor);
 
       // 9. 返回 promise 與取消請求控制器
       return requestHandler();
     };
   }
 
-  /**
-   * @todo 物件深層繼承問題
-   */
   #mergeConfig<T, K>(mainConfig?: T, viceConfig?: K) {
     const copy = deepClone(mainConfig) ?? {};
-    return Object.assign(copy, viceConfig);
+    Object.assign(copy, viceConfig);
+
+    return copy;
   }
 
   #paramDeclarationDestructor(param?: ParamDef): [param: string[], description: string[]] {

@@ -1,7 +1,9 @@
 import type { BasicType, TypeDef, TypeMetadata, TypeValidator } from "src/types/ruleLiteral.type";
 import TYPES from "src/assets/TYPES";
 import { pureLowerCase } from "src/utils/common";
+import Expose from "src/decorator/Expose.decorator";
 
+@Expose()
 export default class TypeLib {
   /** 型別字典 */
   #lib = new Map();
