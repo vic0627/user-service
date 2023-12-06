@@ -1,5 +1,6 @@
-import us from "../../../../dist/user-service.esm.js";
-const { defineIntersection } = us;
+import storeServcie from "./storeServcie.js";
+
+const { defineIntersection } = storeServcie;
 
 /**
  * defineIntersection()

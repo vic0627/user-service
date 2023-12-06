@@ -1,3 +1,8 @@
+/**
+ * 防呆組件
+ * @param {string} msg 提示訊息
+ * @param {number} ms 訊息停留期限
+ */
 export default async (msg, ms = 3000) => {
   const body = $("body");
 
@@ -26,17 +31,19 @@ export default async (msg, ms = 3000) => {
   });
 
   async function unmount(e) {
+    if (!e) return;
+
     e.classList.remove("mount");
-    $id("foolproof-confirm-btn").removeEventListener("click", () => unmount(e));
+    if ($id("foolproof-confirm-btn")) $id("foolproof-confirm-btn").removeEventListener("click", () => unmount(e));
+
     await $delay(() => {
-      body.removeChild(e);
+      if ([...document.body.children].includes(e)) body.removeChild(e);
     }, 350);
   }
 
   $id("foolproof-confirm-btn").addEventListener("click", () => unmount(fp));
 
   $delay(() => {
-    if (!fp) return;
     unmount(fp);
   }, ms);
 };

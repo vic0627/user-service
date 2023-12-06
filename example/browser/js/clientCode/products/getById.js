@@ -23,9 +23,15 @@ const getProductsById = async () => {
 
     if (res?.status !== 200) throw new Error("Failed to get products");
 
-    const content = Object.entries(res?.data).map(([key, value]) => `<p>${key}：${value}</p>`).join("");
+    const {title, image, price, description} = res?.data
+    const noContent = "無商品"
 
-    $id("products_get_by_id-result").innerHTML = content;
+    $id("products_get_by_id-result").innerHTML = `
+      <h5>${title || noContent}</h5>
+      <img src="${image}" alt="${title || noContent}"/>
+      <p>${description || noContent}</p>
+      <p>價格 $${price || noContent}</p>
+    `;
   } catch (err) {
     console.error(err, "capture inside fn");
   }

@@ -1,6 +1,7 @@
+import storeServcie from "./storeServcie.js";
 import { limitAndSortDescription, productQueryRules, positiveInt } from "./productService.js";
-import us from "../../../../dist/user-service.esm.js";
-const { mergeRules, partialRules, defineType } = us;
+
+const { mergeRules, partialRules, defineType } = storeServcie;
 
 defineType("cartitem", (value) => value?.productId > 0 && value?.quantity > 0);
 

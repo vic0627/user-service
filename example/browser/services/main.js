@@ -1,17 +1,17 @@
-import us from "../../../dist/user-service.esm.js";
+import storeService from "./serviceSlice/storeServcie.js";
 import authService from "./serviceSlice/authService.js";
 import productService from "./serviceSlice/productService.js";
 import cartService from "./serviceSlice/cartService.js";
-import foolProof from "../js/components/foolProof.js";
+import foolProof from "../../js/components/foolProof.js";
 
-const { createService } = us;
+const { createService } = storeService;
 
 /**
  * 非該 node level 限定的 Configuration 會往下(children, api)繼承，越 deep 的 config 權重越大。
  */
 
 /** @type {import("../../../src/types/userService.type.js").ServiceConfigRoot} */
-const service = {
+const serviceConfig = {
   baseURL: "https://fakestoreapi.com/",
   name: "storeAPI",
   description:
@@ -30,41 +30,54 @@ const service = {
   // cacheLifetime: 1000 * 60 * 2,
   withCredentials: false,
   validation: true,
-  interceptor: {
-    // onBeforeValidation() {},
-    onValidationFailed(error) {
-      foolProof(error?.message);
+  // onBeforeValidation() {},
+  onValidationFailed(error) {
+    foolProof(error?.message);
+    // scheduledTask.execute();
+  },
+  // onBeforeBuildingURL() {},
+  // onBeforeRequest() {},
+  // onRequest() {},
+  //   onRequestFailed(err) {
+  //     console.error(err);
+  //   },
+  onRequestSucceed: (res) => {
+    res.transformFromHooks = true;
+    res.data = JSON.parse(res.data);
+    console.log("get result from onRequestSucceed", res);
+    return res;
+  },
+  api: {
+    name: "jump",
+    onBeforeValidation(_blank) {
+      if (_blank === true) window.open(serviceConfig.baseURL, "_blank", "width=600,height=800");
+      else window.open(serviceConfig.baseURL);
+      throw "jump to new page...";
     },
-    // onBeforeBuildingURL() {},
-    // onBeforeRequest() {},
-    // onRequest() {},
-    // onRequestFailed() {},
-    onRequestSucceed: (res) => {
-      res.transformFromHooks = true;
-      res.data = JSON.parse(res.data);
-      console.log("get result from onRequestSucceed", res);
-      return res;
+    onValidationFailed(msg) {
+      console.log(msg);
     },
   },
-  // api: [],
+
+  scheduledInterval: 1000 * 60 * 5,
 };
 
 /**
  * 使用此方法創建 API 抽象層
  */
-const userService = createService(service);
-console.log(userService);
+const service = createService(serviceConfig);
+console.log(service);
 
 /**
  * 掛載到全域物件
  * @description 掛載後會以 root service 的 name 重新命名，若沒有配置 root name，預設會是 `$serviceAPI`。
  */
-userService.mount(window);
+service.mount(window);
 
 /**
- * 透過 userService 或掛載後的 service 呼叫 api
+ * 透過 service 或掛載後的 service 呼叫 api
  */
-// userService.products.getAll();
+// service.products.getAll();
 // or
 // 設置 root name 為 `storeAPI`
 // window.$storeAPI.products.getAll();

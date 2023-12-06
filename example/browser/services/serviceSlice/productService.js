@@ -1,5 +1,5 @@
-import us from "../../../../dist/user-service.esm.js";
-const { mergeRules, partialRules } = us;
+import storeServcie from "./storeServcie.js";
+const { mergeRules, partialRules } = storeServcie;
 
 /** 以下為參數名稱及敘述 */
 
@@ -29,8 +29,13 @@ const productRules = {
 const onBeforeRequest = (payload) => {
   if (payload.image) payload.image = btoa(payload.image);
   const req = JSON.stringify(payload);
-  console.log(req);
+
   return req;
+};
+
+const onBeforeValidation = (payload) => {
+  if (payload.price !== undefined && typeof payload.price !== "number") payload.price = Number(payload.price);
+  if (payload.id !== undefined && typeof payload.id !== "number") payload.id = Number(payload.id);
 };
 
 const productDescription = {
@@ -71,7 +76,11 @@ export default {
   // name: "products",
 
   description: "獲取虛擬商店中的所有商品數據，包括商品名稱、價格、描述等詳細信息。",
+
   // cacheLifetime: 1000 * 5,
+
+  onBeforeValidation,
+  onBeforeRequest,
 
   /**
    * api 為根據同層的 route 上的方法，可為 object literal(單一方法) 或 array(多個方法)
@@ -90,6 +99,7 @@ export default {
       query: limitAndSortDescription,
       rules: productQueryRules,
       cache: true,
+      onBeforeRequest() {},
     },
     /**
      * GET https://fakestoreapi.com/products/:id
@@ -103,6 +113,7 @@ export default {
       param: idDescription,
       rules: productIdRule,
       cache: true,
+      onBeforeRequest() {},
     },
     /**
      * POST https://fakestoreapi.com/products
@@ -116,9 +127,6 @@ export default {
       method: "POST",
       body: productDescription,
       rules: productRules,
-      interceptor: {
-        onBeforeRequest,
-      },
     },
     /**
      * PUT https://fakestoreapi.com/products/:id
@@ -133,9 +141,6 @@ export default {
       param: idDescription,
       body: productDescription,
       rules: mergeRules(productRules, productIdRule),
-      interceptor: {
-        onBeforeRequest,
-      },
     },
     /**
      * PATCH https://fakestoreapi.com/products/:id
@@ -150,9 +155,6 @@ export default {
       param: idDescription,
       body: productDescription,
       rules: mergeRules(partialRules(productRules), productIdRule),
-      interceptor: {
-        onBeforeRequest,
-      },
     },
     /**
      * DELETE https://fakestoreapi.com/products/:id
