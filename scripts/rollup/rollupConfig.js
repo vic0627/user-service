@@ -16,18 +16,21 @@ const output = [
     name: "us",
     file: getPath("dist/user-service.js"),
     format: "iife",
+    exports: "named",
     // plugins: [cleanup({ extensions: [".ts", ".js"] })],
   },
   {
     name: "us",
     file: getPath("dist/user-service.esm.js"),
     format: "es",
+    exports: "named",
     // plugins: [cleanup({ extensions: [".ts", ".js"] })],
   },
   {
     name: "us",
     file: getPath("dist/user-service.min.js"),
     format: "iife",
+    exports: "named",
     plugins: [terser()],
   },
 ];
