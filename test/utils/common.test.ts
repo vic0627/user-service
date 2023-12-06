@@ -88,12 +88,12 @@ describe("getRanNum function", () => {
     expect(typeof result).toBe("number");
   });
 
-  it('should return a number when type is "number"', () => {
+  it("should return a number when type is 'number'", () => {
     const result = getRanNum("number");
     expect(typeof result).toBe("number");
   });
 
-  it('should return a string when type is "string"', () => {
+  it("should return a string when type is 'string'", () => {
     const result = getRanNum("string");
     expect(typeof result).toBe("string");
   });
