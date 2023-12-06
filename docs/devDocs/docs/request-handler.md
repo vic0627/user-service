@@ -9,8 +9,8 @@
 `APIFactory` 只有一個 public method，用於接收 API 配置後產出相應 Final API，而整個運作流程分為三個階段：
 
 1. Service 初始化階段：此階段會在 `createService()` 時同步執行，將基本的配置寫入記憶體
-2. Final API Runtime 階段：此階段會在 client 使用 Final API 時執行，為同步方法
-3. Promise 階段：此階段會在 client 使用 Final API 所返回的 `requestHandler` 時執行，三個攔截器剛好會對應到 Promise 的三種狀態 pending、rejected、fulfilled
+2. Final API Runtime 階段：此階段會在 client 使用 Final API 時同步執行
+3. Promise 階段：三個攔截器剛好會對應到 Promise 的三種狀態 pending、rejected、fulfilled
 
 > 預計 `onValidationSucceed` 與 `onBeforeBuildingURL` 兩個 hooks 會合併成一個，另外 Promise 階段的 `onRequest` 尚未實踐。
 
@@ -31,7 +31,7 @@
 
 `RequestHandler.request()` 會要求請求時所需的基本參數，並返回四個屬性：
 
-- `RequestDetail.requestToken`：該請求的 token，以 `<method><url>` 的格式字串所產生的 symbol，將用於快取管理 or 未來其他擴充項目，作為代表請求的鍵值
+- `RequestDetail.requestToken`：該請求的 token，以 `<method>:<url>` 的格式字串所產生的 symbol，將用於快取管理 or 未來其他擴充項目，作為代表請求的鍵值
 - `RequestDetail.request`：實際送出請求，並返回 Promise 的方法
 - `RequestDetail.abortController`：取消請求的同步方法
 - `RequestDetail.config`：請求配置
