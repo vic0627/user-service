@@ -16,7 +16,6 @@ const output = [
     name: "us",
     file: getPath("dist/user-service.js"),
     format: "iife",
-    exports: "named",
     // plugins: [cleanup({ extensions: [".ts", ".js"] })],
   },
   {
