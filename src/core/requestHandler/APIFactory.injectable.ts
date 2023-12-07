@@ -10,11 +10,12 @@ import type { Payload } from "src/types/ruleObject.type";
 import XHR from "./requestStrategy/XHR.provider";
 import Injectable from "src/decorator/Injectable.decorator";
 import RuleObject from "../validationEngine/RuleObject.injectable";
-import { deepClone, resolveURL } from "src/utils/common";
+import { deepClone } from "src/utils/common";
 import RuleError from "../validationEngine/RuleError";
 import CacheManager from "./requestPipe/CacheManager.injectable";
 import RequestHandler from "src/abstract/RequestHandler.abstract";
 import PromiseInterceptors from "./requestPipe/PromiseInterceptors.provider";
+import Path from "src/utils/Path.provider";
 
 /**
  * 產出 **最終使用者介面(Final API)** 的工廠。
@@ -37,6 +38,7 @@ export default class APIFactory {
   }
 
   constructor(
+    private readonly path: Path,
     private readonly ruleObject: RuleObject,
     private readonly xhr: XHR,
     private readonly cacheManager: CacheManager,
@@ -202,13 +204,13 @@ export default class APIFactory {
     const [paramKeys] = this.#paramDeclarationDestructor(param);
     const [queryKeys] = this.#paramDeclarationDestructor(query);
 
-    const builder = (o: string[], callback: (key: string, value: string | number) => void) => {
+    const builder = (o: string[], callback: (key: string, value: string) => void) => {
       o.forEach((key) => {
         if (!(key in payload)) {
           return;
         }
 
-        const value = payload[key];
+        const value = String(payload[key]);
 
         if (typeof value !== "string" && typeof value !== "number") {
           console.warn("Parameter will skip the values that aren't in string or number type");
@@ -220,17 +222,17 @@ export default class APIFactory {
       });
     };
 
-    const _param: (string | number)[] = [];
+    const _param: string[] = [];
     builder(paramKeys, (_, value) => {
       _param.push(value);
     });
 
-    const _query: Record<string, string | number> = {};
+    const _query: Record<string, string> = {};
     builder(queryKeys, (key, value) => {
       _query[key] = value;
     });
 
-    return resolveURL([url, ..._param], _query);
+    return this.path.resolveURL({ paths: [url, ..._param], query: _query });
   }
 
   #validationEngine(options: {

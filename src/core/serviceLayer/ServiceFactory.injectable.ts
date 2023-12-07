@@ -9,14 +9,14 @@ import type {
 import Injectable from "src/decorator/Injectable.decorator";
 import Service from "./Service";
 import APIFactory from "../requestHandler/APIFactory.injectable";
-import { deepClone, notNull, resolveURL } from "src/utils/common";
+import { deepClone, notNull } from "src/utils/common";
 import Expose from "src/decorator/Expose.decorator";
 import ScheduledTask from "../scheduledTask/ScheduledTask.provider";
+import Path from "src/utils/Path.provider";
 
 /**
  * 抽象層建立、配置繼承與複寫
- * @todo 新增 `resolveURL.provider.ts` 來更嚴謹地處理路徑，包括解析、合併、拆散等功能
- * @todo 新增 `decodeTime.provider.ts` 來轉換 `${days}d${hour}h${minute}m${second}s${millisecond}ms` 格式字串成
+ * @todo 新增 `DecodeTime.provider.ts` 來轉換 `${days}d${hour}h${minute}m${second}s${millisecond}ms` 格式字串成數字
  */
 @Expose()
 @Injectable()
@@ -25,11 +25,14 @@ export default class ServiceFactory {
   #root = true;
 
   constructor(
+    private readonly path: Path,
     private readonly apiFactory: APIFactory,
     private readonly scheduledTask: ScheduledTask,
   ) {}
 
   createService(serviceConfig: ServiceConfigRoot) {
+    this.#root = true;
+
     // 先建構根節點
     return this.#buildServiceTree({ serviceConfig });
   }
@@ -50,10 +53,7 @@ export default class ServiceFactory {
 
     // 2. 配置繼承與複寫
     const parentConfigCopy = deepClone(parentConfig) as InheritConfig | {};
-    // const parentInterceptor = deepClone((parentConfigCopy as InheritConfig)?.interceptor ?? {});
-    // const interceptor = Object.assign(parentInterceptor, serviceConfig?.interceptor);
     const overwriteConfig = Object.assign(parentConfigCopy, serviceConfig) as OverwriteConfig;
-    // overwriteConfig.interceptor = interceptor;
     const {
       name,
       // description,
@@ -122,7 +122,7 @@ export default class ServiceFactory {
     const route = (serviceConfig as ServiceConfigChild).route;
 
     if (baseURL && route) {
-      _baseURL = resolveURL([baseURL, route]);
+      _baseURL = this.path.join(baseURL, route);
     } else {
       _baseURL = baseURL as string;
     }
@@ -267,7 +267,7 @@ export default class ServiceFactory {
     const { route, api } = child;
     const { baseURL } = parentConfig;
 
-    const url = resolveURL([baseURL as string, route as string]);
+    const url = this.path.join(baseURL, route);
 
     const configCopy = deepClone(parentConfig);
 

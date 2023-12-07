@@ -1,5 +1,10 @@
-import { StringAndStringArray } from "src/types/common.type";
+/**
+ * ⚠️零散的共用邏輯可以放這，若有兩支以上的函式都在處理同系列邏輯，請將那些邏輯獨立出去成 provider⚠️
+ *
+ * @todo 新增 `Object.provider.ts` 用於更安全地處理物件複雜操作
+ */
 
+/** 不是空值(`null` or `undefined`) */
 export const notNull = (value: unknown): boolean => value !== null && value !== undefined;
 
 export const symbolToken = <T extends string>(target: T) => Symbol.for(target);
@@ -41,77 +46,6 @@ export const mergeObject = (...targets: any[]) => {
   }
 
   return newObject;
-};
-
-export const resolveURL = (url: StringAndStringArray, query?: Record<string, string | number>) => {
-  const isArray = Array.isArray(url);
-
-  let str: string;
-
-  if (isArray) {
-    if (typeof url[0] !== "string") {
-      throw new TypeError("BaseURL can only be string");
-    }
-
-    str = url[0];
-    url.shift();
-  } else if (typeof url === "string") {
-    str = url;
-  } else {
-    throw new TypeError("Unexpected type for url");
-  }
-
-  const iterator = [...(isArray ? url : [])];
-
-  iterator.forEach((uri) => {
-    const slashEnd = str.endsWith("/");
-
-    if (typeof uri === "number") {
-      if (!slashEnd) {
-        str += "/";
-      }
-
-      str += uri;
-
-      return;
-    }
-
-    const slashStart = uri.startsWith("/");
-
-    if (slashEnd && slashStart) {
-      str += uri.slice(1);
-
-      return;
-    }
-
-    if (!slashEnd && !slashStart) {
-      str += "/" + uri;
-
-      return;
-    }
-
-    str += uri;
-  });
-
-  if (str.endsWith("/")) {
-    str = str.slice(0, -1);
-  }
-
-  if (!query) {
-    return str;
-  }
-
-  Object.entries(query).forEach(([key, value], i) => {
-    if (!i) {
-      str += "?";
-    } else {
-      str += "&";
-    }
-
-    str += key + "=" + value;
-  });
-
-  return str;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-constraint

@@ -11,13 +11,14 @@ import CacheManager from "./requestHandler/requestPipe/CacheManager.injectable";
 import PromiseInterceptors from "./requestHandler/requestPipe/PromiseInterceptors.provider";
 import ScheduledTask from "./scheduledTask/ScheduledTask.provider";
 import WebStorage from "./requestHandler/requestPipe/cacheStrategy/WebStorage.provider";
+import Path from "src/utils/Path.provider";
 
 @IOCContainer({
-  provides: [TypeLib, Byte, ByteConvertor, XHR, PromiseInterceptors, ScheduledTask, WebStorage],
+  provides: [TypeLib, Byte, ByteConvertor, XHR, PromiseInterceptors, ScheduledTask, WebStorage, Path],
   imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory, CacheManager],
 })
 class Module {
-  // 有 @Expose() 的模組
+  // 有 @Expose() 並且想在 index.ts 存取的模組要先聲明相應的儲存空間
   TypeLib?: TypeLib;
   RuleArray?: RuleArray;
   RuleObject?: RuleObject;

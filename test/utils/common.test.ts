@@ -6,7 +6,6 @@ import {
   pureLowerCase,
   getRanNum,
   mergeObject,
-  resolveURL,
   deepClone,
 } from "src/utils/common";
 
@@ -138,57 +137,6 @@ describe("mergeObject", () => {
     const result = mergeObject(obj1, obj2);
     expect(result).toEqual({ a: 1, b: 2, c: 3 });
     expect(Object.hasOwn(result, "d")).toBe(false);
-  });
-});
-
-describe("resolveURL", () => {
-  it("should resolve single string URL without query", () => {
-    const result = resolveURL("path/to/resource");
-    expect(result).toBe("path/to/resource");
-  });
-
-  it("should resolve array of strings URL without query", () => {
-    const result = resolveURL(["path", "to", "resource"]);
-    expect(result).toBe("path/to/resource");
-  });
-
-  it("should resolve array with leading slashes URL without query", () => {
-    const result = resolveURL(["/path", "/to", "/resource"]);
-    expect(result).toBe("/path/to/resource");
-  });
-
-  it("should resolve array with trailing slashes URL without query", () => {
-    const result = resolveURL(["path/", "to/", "resource/"]);
-    expect(result).toBe("path/to/resource");
-  });
-
-  it("should resolve array with mixed slashes URL without query", () => {
-    const result = resolveURL(["path/", "/to", "resource/"]);
-    expect(result).toBe("path/to/resource");
-  });
-
-  it("should resolve single string URL with query", () => {
-    const result = resolveURL("path/to/resource", {
-      param1: "value1",
-      param2: "value2",
-    });
-    expect(result).toBe("path/to/resource?param1=value1&param2=value2");
-  });
-
-  it("should resolve array of strings URL with query", () => {
-    const result = resolveURL(["path", "to", "resource"], {
-      param1: "value1",
-      param2: "value2",
-    });
-    expect(result).toBe("path/to/resource?param1=value1&param2=value2");
-  });
-
-  it("should resolve array with mixed slashes URL with query", () => {
-    const result = resolveURL(["path/", "/to", "resource/"], {
-      param1: "value1",
-      param2: "value2",
-    });
-    expect(result).toBe("path/to/resource?param1=value1&param2=value2");
   });
 });
 
