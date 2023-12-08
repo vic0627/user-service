@@ -22,6 +22,11 @@ export default class ScheduledTask {
     this.#runTasks();
   }
 
+  /**
+   * 設定排程任務的執行間隔時間
+   * @param interval 間隔時間
+   * @param service Sevice 抽象層實例
+   */
   setInterval(interval?: number, service?: Service) {
     if (!notNull(interval) || (interval as number) <= 0 || service?._parent) {
       return;
