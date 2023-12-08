@@ -12,6 +12,7 @@ const TYPES: TypeDef[] = [
   ["boolean", false, null, false, null, (value) => typeof value === "boolean"],
   ["object", false, null, false, null, (value) => typeof value === "object" && !Array.isArray(value)],
   ["date", false, null, false, Date, (value) => value instanceof Date],
+  ["arraybuffer", true, "byteLength", true, ArrayBuffer, (value) => value instanceof ArrayBuffer],
 ];
 
 export default TYPES;

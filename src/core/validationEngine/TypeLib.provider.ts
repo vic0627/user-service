@@ -76,7 +76,5 @@ export default class TypeLib {
     };
 
     this.#lib.set(type, typeInfo);
-
-    // console.log(`new type '${type}' registered`, typeInfo);
   }
 }
