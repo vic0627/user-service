@@ -1,7 +1,5 @@
 import storeServcie from "./storeServcie.js";
 
-const { defineIntersection } = storeServcie;
-
 /**
  * defineIntersection()
  * 為定義類似 TS intersection type 的方法，即同時必須符合所有驗證規則
@@ -15,7 +13,7 @@ const { defineIntersection } = storeServcie;
  * 用來定義類似 TS 的 union type
  */
 
-const usernameIntersectionRules = defineIntersection("string@3:15", (_, value) => {
+const usernameIntersectionRules = storeServcie.defineIntersection("string@3:15", (_, value) => {
   if (typeof value === "string")
     return {
       valid: !value.includes("習近平"),

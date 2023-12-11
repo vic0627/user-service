@@ -1,5 +1,4 @@
 import storeServcie from "./storeServcie.js";
-const { mergeRules, partialRules } = storeServcie;
 
 /** 以下為參數名稱及敘述 */
 
@@ -28,7 +27,7 @@ const productRules = {
 
 const onBeforeRequest = (payload) => {
   if (payload.image) payload.image = btoa(payload.image);
-  const req = JSON.stringify(payload);
+  const req = storeServcie.createFormData(payload);
 
   return req;
 };
@@ -140,7 +139,7 @@ export default {
       method: "PUT",
       param: idDescription,
       body: productDescription,
-      rules: mergeRules(productRules, productIdRule),
+      rules: storeServcie.mergeRules(productRules, productIdRule),
     },
     /**
      * PATCH https://fakestoreapi.com/products/:id
@@ -154,7 +153,7 @@ export default {
       method: "PATCH",
       param: idDescription,
       body: productDescription,
-      rules: mergeRules(partialRules(productRules), productIdRule),
+      rules: storeServcie.mergeRules(storeServcie.partialRules(productRules), productIdRule),
     },
     /**
      * DELETE https://fakestoreapi.com/products/:id
@@ -204,7 +203,7 @@ export default {
          */
         param: { category: "商品分類" },
         query: limitAndSortDescription,
-        rules: mergeRules(productQueryRules, { category: "string" }),
+        rules: storeServcie.mergeRules(productQueryRules, { category: "string" }),
         cache: true,
       },
     },
