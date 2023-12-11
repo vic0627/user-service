@@ -78,7 +78,7 @@ const init = async () => {
       timeLog(`file ${ansi.color("cyanBlue", path)} has changed. reloading...`);
 
       try {
-        await rollupBuild();
+        if (path.includes('src')) await rollupBuild();
 
         await socketEvent.emit("reload");
 
