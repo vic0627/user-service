@@ -8,7 +8,7 @@ import { notNull } from "src/utils/common";
 import Expose from "src/decorator/Expose.decorator";
 
 /**
- * The main validation system factory, deal with all rules that are created by object literal.
+ * 參數驗證器生成工廠
  */
 @Expose()
 @Injectable()
@@ -20,20 +20,32 @@ export default class RuleObject {
     private readonly ruleArray: RuleArray,
   ) {}
 
+  /**
+   * 主要入口函式
+   * @param rule 規則物件
+   * @returns payload 驗證器
+   */
   evaluate(rule?: RuleObjectInterface) {
-    if (!notNull(rule)) {
+    // 1. 判斷規則物件型別，無合法規則物件時，返回空函式
+    const invalidRule = !notNull(rule) || typeof rule !== "object" || Array.isArray(rule);
+
+    if (invalidRule) {
       return () => {};
     }
 
+    // 2. 評估規則物件，取得所有參數驗證器與必要參數
     const { ruleLib, required } = this.#evaluateRules(rule as RuleObjectInterface);
 
+    // 3. 返回 payload 驗證器
     return (payload: Payload) => {
+      // 3-1. 驗證必要參數是否存在
       required.forEach((key) => {
         if (!(key in payload)) {
           throw new RuleError(`Parameter '${key}' is required`);
         }
       });
 
+      // 3-2. 驗證參數是否合規
       this.#traverseObject(payload, (key, value) => {
         if (!(key in ruleLib)) {
           return;
@@ -47,8 +59,10 @@ export default class RuleObject {
   }
 
   #evaluateRules(rule: RuleObjectInterface) {
+    /** 參數驗證器字典 */
     const ruleLib: Record<string, (param: string, value: unknown) => void> = {};
 
+    /** 必要參數 */
     const required: string[] = [];
 
     this.#traverseObject(rule, (key, value) => {
@@ -90,6 +104,47 @@ export default class RuleObject {
     return param.startsWith(this.#optionalSymbol);
   }
 
+  #wrapper(
+    target: RuleObjectInterface,
+    canModifyKey: (key: string) => boolean,
+    modifyKeyCallback: (key: string) => string,
+    canDefineProp: (key: string) => boolean,
+  ) {
+    const newRules: RuleObjectInterface = {};
+
+    this.#traverseObject(target, (key, value) => {
+      if (canModifyKey(key)) {
+        key = modifyKeyCallback(key);
+      }
+
+      if (canDefineProp(key)) {
+        Object.defineProperty(newRules, key, {
+          value,
+          enumerable: true,
+        });
+      }
+    });
+
+    return newRules;
+  }
+
+  #traverseObject(o: RuleObjectInterface | Payload, callback: (key: string, value: ObjectRules | unknown) => void) {
+    if (typeof o !== "object" || o === null || Array.isArray(o)) {
+      throw new TypeError("Only object literal is accepted");
+    }
+
+    for (const key in o) {
+      const hasProp = Object.prototype.hasOwnProperty.call(o, key);
+
+      if (!hasProp) {
+        continue;
+      }
+
+      callback(key, o[key]);
+    }
+  }
+
+  // #region 規則物件的 util function，給 client 用的
   mergeRules(...targets: RuleObjectInterface[]) {
     const newRules: RuleObjectInterface = {};
 
@@ -152,44 +207,5 @@ export default class RuleObject {
       },
     );
   }
-
-  #wrapper(
-    target: RuleObjectInterface,
-    canModifyKey: (key: string) => boolean,
-    modifyKeyCallback: (key: string) => string,
-    canDefineProp: (key: string) => boolean,
-  ) {
-    const newRules: RuleObjectInterface = {};
-
-    this.#traverseObject(target, (key, value) => {
-      if (canModifyKey(key)) {
-        key = modifyKeyCallback(key);
-      }
-
-      if (canDefineProp(key)) {
-        Object.defineProperty(newRules, key, {
-          value,
-          enumerable: true,
-        });
-      }
-    });
-
-    return newRules;
-  }
-
-  #traverseObject(o: RuleObjectInterface | Payload, callback: (key: string, value: ObjectRules | unknown) => void) {
-    if (typeof o !== "object" || o === null || Array.isArray(o)) {
-      throw new TypeError("Only object literal is accepted");
-    }
-
-    for (const key in o) {
-      const hasProp = Object.prototype.hasOwnProperty.call(o, key);
-
-      if (!hasProp) {
-        continue;
-      }
-
-      callback(key, o[key]);
-    }
-  }
+  // #endregion
 }

@@ -131,8 +131,8 @@ export default class ServiceFactory {
       validation,
       cache,
       cacheLifetime,
-      auth,
-      headers,
+      auth: { ...auth },
+      headers: { ...headers },
       headerMap,
       timeout,
       timeoutErrorMessage,
@@ -177,15 +177,16 @@ export default class ServiceFactory {
   }
 
   /**
-   * 取得路徑
-   * @todo 更安全的解析方式
+   * 取得第一層路徑
    */
   #getFirstRoute(route?: string) {
     if (!route) {
       return;
     }
 
-    return route.split("/")[0];
+    const [firstRoute] = this.path.antiSlash(route);
+
+    return firstRoute;
   }
 
   /**
