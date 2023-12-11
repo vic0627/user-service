@@ -5,12 +5,11 @@ import { ObjectRules, Payload, RuleObjectInterface, ValidRule } from "src/types/
 import { RuleValidator } from "src/types/ruleLiteral.type";
 import RuleError from "./RuleError";
 import { notNull } from "src/utils/common";
-import Expose from "src/decorator/Expose.decorator";
 
 /**
  * The main validation system factory, deal with all rules that are created by object literal.
  */
-@Expose()
+
 @Injectable()
 export default class RuleObject {
   #optionalSymbol = "$";

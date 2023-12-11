@@ -1,33 +1,48 @@
 import "reflect-metadata";
 import UserService from "./core/UserService.ioc";
+import ScheduledTask from "./core/scheduledTask/ScheduledTask.provider";
+import ServiceFactory from "./core/serviceLayer/ServiceFactory.injectable";
+import RuleArray from "./core/validationEngine/RuleArray.injectable";
+import RuleObject from "./core/validationEngine/RuleObject.injectable";
+import TypeLib from "./core/validationEngine/TypeLib.provider";
+import ServiceFormData from "./core/formData/ServcieFormData.provider";
 
 const userService = () => {
-  const _us = new UserService();
+  const us = new UserService(
+    {} as ScheduledTask,
+    {} as ServiceFactory,
+    {} as RuleArray,
+    {} as RuleObject,
+    {} as TypeLib,
+    {} as ServiceFormData,
+  );
 
-  const defineType = _us?.TypeLib?.defineType.bind(_us?.TypeLib);
-  const defineUnion = _us?.RuleArray?.defineUnion.bind(_us?.RuleArray);
-  const defineIntersection = _us?.RuleArray?.defineIntersection.bind(_us?.RuleArray);
-  const mergeRules = _us?.RuleObject?.mergeRules.bind(_us?.RuleObject);
-  const partialRules = _us?.RuleObject?.partialRules.bind(_us?.RuleObject);
-  const requiredRules = _us?.RuleObject?.requiredRules.bind(_us?.RuleObject);
-  const pickRules = _us?.RuleObject?.pickRules.bind(_us?.RuleObject);
-  const omitRules = _us?.RuleObject?.omitRules.bind(_us?.RuleObject);
-  const createService = _us?.ServiceFactory?.createService.bind(_us?.ServiceFactory);
-
-  const scheduledTask = _us?.ScheduledTask;
-
-  return {
-    _us,
+  const {
     scheduledTask,
+    createService,
+    createFormData,
     defineType,
-    defineUnion,
     defineIntersection,
+    defineUnion,
     mergeRules,
     partialRules,
     requiredRules,
-    pickRules,
     omitRules,
-    createService,
+    pickRules,
+  } = us;
+
+  return {
+    scheduledTask,
+    createService: createService.bind(us),
+    createFormData: createFormData.bind(us),
+    defineType: defineType.bind(us),
+    defineIntersection: defineIntersection.bind(us),
+    defineUnion: defineUnion.bind(us),
+    mergeRules: mergeRules.bind(us),
+    partialRules: partialRules.bind(us),
+    requiredRules: requiredRules.bind(us),
+    omitRules: omitRules.bind(us),
+    pickRules: pickRules.bind(us),
   };
 };
 
