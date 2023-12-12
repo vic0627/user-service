@@ -126,6 +126,7 @@ export default class APIFactory {
       let url = runtimeOverWrite.url;
       url = this.#paramBuilder(url as string, payload, param, query);
 
+      /** @todo 新增階段 payload 建構，避免被帶入不必要屬性 */
       let _payload;
 
       if (typeof onBeforeRequest === "function") {

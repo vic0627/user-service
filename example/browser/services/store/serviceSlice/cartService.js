@@ -1,7 +1,7 @@
-import storeServcie from "./storeServcie.js";
+import { defineType, mergeRules } from "../../../../../dist/user-service.esm.js";
 import { limitAndSortDescription, productQueryRules, positiveInt } from "./productService.js";
 
-storeServcie.defineType("cartitem", (value) => value?.productId > 0 && value?.quantity > 0);
+defineType("cartitem", (value) => value?.productId > 0 && value?.quantity > 0);
 
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -11,12 +11,12 @@ const cartIdRule = { cartId: positiveInt };
 
 const userIdRule = { userId: positiveInt };
 
-const cartItemRules = storeServcie.mergeRules(userIdRule, {
+const cartItemRules = mergeRules(userIdRule, {
   date: dateRegex,
   products: "cartitem[]",
 });
 
-const updateCartRules = storeServcie.mergeRules(cartItemRules, cartIdRule);
+const updateCartRules = mergeRules(cartItemRules, cartIdRule);
 
 const cartDescription = {
   userId: "使用者索引",
@@ -38,10 +38,13 @@ export default {
         },
         limitAndSortDescription,
       ),
-      rules: storeServcie.mergeRules(productQueryRules, {
+      rules: mergeRules(productQueryRules, {
         $startdate: dateRegex,
         $enddate: dateRegex,
       }),
+      onBeforeRequest(p) {
+        console.log(p);
+      },
     },
     {
       name: "get",

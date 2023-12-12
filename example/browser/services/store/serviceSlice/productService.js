@@ -1,4 +1,4 @@
-import storeServcie from "./storeServcie.js";
+import { createFormData, mergeRules, partialRules } from "../../../../../dist/user-service.esm.js";
 
 /** 以下為參數名稱及敘述 */
 
@@ -27,7 +27,7 @@ const productRules = {
 
 const onBeforeRequest = (payload) => {
   if (payload.image) payload.image = btoa(payload.image);
-  const req = storeServcie.createFormData(payload);
+  const req = createFormData(payload);
 
   return req;
 };
@@ -62,7 +62,7 @@ export const productQueryRules = {
   },
 };
 
-/** @type {import("../../../../src/types/userService.type.js").ServiceConfigChild} */
+/** @type {import("../../../../../dist/types/userService.type.js").ServiceConfigChild} */
 export default {
   /**
    * 結合 baseURL 的完整 url 會是 https://fakestoreapi.com/products
@@ -139,7 +139,7 @@ export default {
       method: "PUT",
       param: idDescription,
       body: productDescription,
-      rules: storeServcie.mergeRules(productRules, productIdRule),
+      rules: mergeRules(productRules, productIdRule),
     },
     /**
      * PATCH https://fakestoreapi.com/products/:id
@@ -153,7 +153,7 @@ export default {
       method: "PATCH",
       param: idDescription,
       body: productDescription,
-      rules: storeServcie.mergeRules(storeServcie.partialRules(productRules), productIdRule),
+      rules: mergeRules(partialRules(productRules), productIdRule),
     },
     /**
      * DELETE https://fakestoreapi.com/products/:id
@@ -203,7 +203,7 @@ export default {
          */
         param: { category: "商品分類" },
         query: limitAndSortDescription,
-        rules: storeServcie.mergeRules(productQueryRules, { category: "string" }),
+        rules: mergeRules(productQueryRules, { category: "string" }),
         cache: true,
       },
     },

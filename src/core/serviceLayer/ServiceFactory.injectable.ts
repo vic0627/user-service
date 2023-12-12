@@ -12,6 +12,7 @@ import APIFactory from "../requestHandler/APIFactory.injectable";
 import { deepClone, notNull } from "src/utils/common";
 import ScheduledTask from "../scheduledTask/ScheduledTask.provider";
 import Path from "src/utils/Path.provider";
+import TypeLib from "../validationEngine/TypeLib.provider";
 
 /**
  * 抽象層建立、配置繼承與複寫
@@ -24,6 +25,7 @@ export default class ServiceFactory {
   #root = true;
 
   constructor(
+    private readonly typeLib: TypeLib,
     private readonly path: Path,
     private readonly apiFactory: APIFactory,
     private readonly scheduledTask: ScheduledTask,
@@ -33,7 +35,11 @@ export default class ServiceFactory {
     this.#root = true;
 
     // 先建構根節點
-    return this.#buildServiceTree({ serviceConfig });
+    const service = this.#buildServiceTree({ serviceConfig });
+
+    this.typeLib.initLib();
+
+    return service;
   }
 
   /**
@@ -95,25 +101,7 @@ export default class ServiceFactory {
   }
 
   #destructureConfig(serviceConfig: ServiceConfigRoot | ServiceConfigChild) {
-    const {
-      validation,
-      cache,
-      cacheLifetime,
-      auth,
-      headers,
-      headerMap,
-      timeout,
-      timeoutErrorMessage,
-      responseType,
-      withCredentials,
-      onBeforeValidation,
-      onValidationFailed,
-      onBeforeBuildingURL,
-      onBeforeRequest,
-      onRequest,
-      onRequestFailed,
-      onRequestSucceed,
-    } = serviceConfig;
+    const { auth, headers, proxy } = serviceConfig;
 
     let _baseURL: string;
 
@@ -127,24 +115,17 @@ export default class ServiceFactory {
     }
 
     const basicConfig = {
-      validation,
-      cache,
-      cacheLifetime,
+      ...serviceConfig,
       auth: { ...auth },
       headers: { ...headers },
-      headerMap,
-      timeout,
-      timeoutErrorMessage,
-      responseType,
-      withCredentials,
-      onBeforeValidation,
-      onValidationFailed,
-      onBeforeBuildingURL,
-      onBeforeRequest,
-      onRequest,
-      onRequestFailed,
-      onRequestSucceed,
+      proxy: { ...proxy },
     };
+
+    // 一定要刪除不繼承的屬性，尤其會造成 maximum callstack exceeded 的屬性
+    delete basicConfig.name;
+    delete basicConfig.description;
+    delete basicConfig.children;
+    delete basicConfig.api;
 
     const nodeConfig = Object.assign({ baseURL: _baseURL }, basicConfig) as InheritConfig;
 
@@ -234,6 +215,10 @@ export default class ServiceFactory {
 
     /** 辨別子路由是否只有一個方法的函式 */
     const singleMethod = (children: ServiceConfigChild) => !children?.children && !Array.isArray(children?.api);
+
+    if (!children.length) {
+      return;
+    }
 
     children.forEach((child) => {
       if (singleMethod(child)) {

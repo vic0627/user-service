@@ -1,16 +1,87 @@
 import type { BasicType, TypeDef, TypeMetadata, TypeValidator } from "src/types/ruleLiteral.type";
 import TYPES from "src/assets/TYPES";
 import { pureLowerCase } from "src/utils/common";
+import { TypeLibrary, TypeLibWithName } from "src/types/typeLib.type";
 
 export default class TypeLib {
   /** 型別字典 */
-  #lib = new Map();
+  #lib = new Map<string, TypeMetadata>();
+
+  #typeLib: TypeLibrary = {};
+
+  get #global() {
+    return "$global";
+  }
 
   constructor() {
+    this.initLib();
+  }
+
+  // #region new feature
+  // initLib(namespace: keyof TypeLibrary = this.#global) {
+  //   let lib = this.chooseLib(namespace);
+
+  //   if (!lib) {
+  //     this.#typeLib[namespace] = new Map<string, TypeMetadata>();
+  //     lib = this.chooseLib(namespace);
+  //   }
+
+  //   TYPES.forEach((def) => {
+  //     lib?.add(...def);
+  //   });
+  // }
+  initLib() {
+    this.#lib.clear();
+
     TYPES.forEach((def) => {
       this.#add(...def);
     });
   }
+
+  chooseLib(namespace: keyof TypeLibrary = this.#global) {
+    const lib = this.#typeLib[namespace];
+
+    if (!lib) {
+      return;
+    }
+
+    return {
+      lib,
+      add: this.#addByLib(lib),
+      hasType: this.#hasByLib(lib),
+      getType: this.#getByLib(lib),
+    };
+  }
+
+  #hasByLib(lib: TypeLibWithName) {
+    return (type: string) => {
+      return lib.has(type);
+    };
+  }
+
+  #getByLib(lib: TypeLibWithName) {
+    return (type: string) => {
+      return lib.get(type);
+    };
+  }
+
+  #addByLib(lib: TypeLibWithName) {
+    return (...typeDef: TypeDef) => {
+      const [type, countable, measureUnit, allowBytes, proto, test] = typeDef;
+
+      const typeInfo: TypeMetadata = {
+        _type: type,
+        countable,
+        measureUnit,
+        allowBytes,
+        proto,
+        test,
+      };
+
+      lib.set(type, typeInfo);
+    };
+  }
+  // #endregion
 
   has(type: string) {
     return this.#lib.has(type);
@@ -18,6 +89,21 @@ export default class TypeLib {
 
   get(type: string): TypeMetadata | undefined {
     return this.#lib.get(type);
+  }
+
+  #add(...typeDef: TypeDef) {
+    const [type, countable, measureUnit, allowBytes, proto, test] = typeDef;
+
+    const typeInfo: TypeMetadata = {
+      _type: type,
+      countable,
+      measureUnit,
+      allowBytes,
+      proto,
+      test,
+    };
+
+    this.#lib.set(type, typeInfo);
   }
 
   /**
@@ -59,20 +145,5 @@ export default class TypeLib {
     this.#add(type as BasicType, false, null, false, null, validator);
 
     return type;
-  }
-
-  #add(...typeDef: TypeDef) {
-    const [type, countable, measureUnit, allowBytes, proto, test] = typeDef;
-
-    const typeInfo: TypeMetadata = {
-      _type: type,
-      countable,
-      measureUnit,
-      allowBytes,
-      proto,
-      test,
-    };
-
-    this.#lib.set(type, typeInfo);
   }
 }

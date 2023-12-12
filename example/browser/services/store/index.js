@@ -1,4 +1,4 @@
-import storeService from "./serviceSlice/storeServcie.js";
+import { createService } from "../../../../dist/user-service.esm.js";
 import authService from "./serviceSlice/authService.js";
 import productService from "./serviceSlice/productService.js";
 import cartService from "./serviceSlice/cartService.js";
@@ -8,7 +8,7 @@ import foolProof from "../../js/components/foolProof.js";
  * 非該 node level 限定的 Configuration 會往下(children, api)繼承，越 deep 的 config 權重越大。
  */
 
-/** @type {import("../../../src/types/userService.type.js").ServiceConfigRoot} */
+/** @type {import("../../../../dist/types/userService.type.js").ServiceConfigRoot} */
 const serviceConfig = {
   baseURL: "https://fakestoreapi.com/",
   name: "storeAPI",
@@ -63,7 +63,7 @@ const serviceConfig = {
 /**
  * 使用此方法創建 API 抽象層
  */
-const service = storeService.createService(serviceConfig);
+const service = createService(serviceConfig);
 console.log(service);
 
 /**

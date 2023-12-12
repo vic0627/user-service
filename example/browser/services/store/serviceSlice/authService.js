@@ -1,4 +1,4 @@
-import storeServcie from "./storeServcie.js";
+import { defineIntersection } from "../../../../../dist/user-service.esm.js";
 
 /**
  * defineIntersection()
@@ -13,7 +13,7 @@ import storeServcie from "./storeServcie.js";
  * 用來定義類似 TS 的 union type
  */
 
-const usernameIntersectionRules = storeServcie.defineIntersection("string@3:15", (_, value) => {
+const usernameIntersectionRules = defineIntersection("string@3:15", (_, value) => {
   if (typeof value === "string")
     return {
       valid: !value.includes("習近平"),

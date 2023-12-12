@@ -7,43 +7,26 @@ import RuleObject from "./core/validationEngine/RuleObject.injectable";
 import TypeLib from "./core/validationEngine/TypeLib.provider";
 import ServiceFormData from "./core/formData/ServcieFormData.provider";
 
-const userService = () => {
-  const us = new UserService(
-    {} as ScheduledTask,
-    {} as ServiceFactory,
-    {} as RuleArray,
-    {} as RuleObject,
-    {} as TypeLib,
-    {} as ServiceFormData,
-  );
+const us = new UserService(
+  {} as ScheduledTask,
+  {} as ServiceFactory,
+  {} as RuleArray,
+  {} as RuleObject,
+  {} as TypeLib,
+  {} as ServiceFormData,
+);
 
-  const {
-    scheduledTask,
-    createService,
-    createFormData,
-    defineType,
-    defineIntersection,
-    defineUnion,
-    mergeRules,
-    partialRules,
-    requiredRules,
-    omitRules,
-    pickRules,
-  } = us;
+export const { scheduledTask } = us;
 
-  return {
-    scheduledTask,
-    createService: createService.bind(us),
-    createFormData: createFormData.bind(us),
-    defineType: defineType.bind(us),
-    defineIntersection: defineIntersection.bind(us),
-    defineUnion: defineUnion.bind(us),
-    mergeRules: mergeRules.bind(us),
-    partialRules: partialRules.bind(us),
-    requiredRules: requiredRules.bind(us),
-    omitRules: omitRules.bind(us),
-    pickRules: pickRules.bind(us),
-  };
-};
+export const createService = us.createService.bind(us);
+export const createFormData = us.createFormData.bind(us);
+export const defineType = us.defineType.bind(us);
+export const defineIntersection = us.defineIntersection.bind(us);
+export const defineUnion = us.defineUnion.bind(us);
+export const mergeRules = us.mergeRules.bind(us);
+export const partialRules = us.partialRules.bind(us);
+export const requiredRules = us.requiredRules.bind(us);
+export const omitRules = us.omitRules.bind(us);
+export const pickRules = us.pickRules.bind(us);
 
-export default userService;
+export default us;

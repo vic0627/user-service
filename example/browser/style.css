@@ -76,13 +76,13 @@ input[type="text"], input[type="number"] {
   max-width: 100px;
 }
 
-.products {
+.products, .carts {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
 }
 
-.products > div {
+.products > div, .carts > div {
   box-sizing: border-box;
   width: 250px;
   padding: 10px;

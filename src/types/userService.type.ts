@@ -141,7 +141,7 @@ export interface ServiceRequestConfigForNodeJS {
 }
 
 /** @inherit 請求配置 */
-export interface ServiceRequestConfig {
+export interface ServiceRequestConfig extends ServiceRequestConfigForNodeJS {
   /**
    * HTTP 方法
    * @default "GET"
