@@ -4,12 +4,7 @@ import { symbolToken } from "src/utils/common";
 import { RuleArrayExecutorArgs, RuleArrayQueueObject, RuleArrayType, ValidRule } from "src/types/ruleObject.type";
 import type { RuleValidator } from "src/types/ruleLiteral.type";
 import type { RuleErrorOption } from "src/types/ruleError.type";
-import Expose from "src/decorator/Expose.decorator";
 
-/**
- * 聯、交集規則陣列
- */
-@Expose()
 @Injectable()
 export default class RuleArray {
   /**

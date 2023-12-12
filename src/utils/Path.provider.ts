@@ -1,10 +1,7 @@
-import Expose from "src/decorator/Expose.decorator";
-
 /**
  * 路徑模組
  * @description 處理所有路徑相關操作，包括判斷、拼接、建構等。
  */
-@Expose()
 export default class Path {
   get #dot() {
     return ".";

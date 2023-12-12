@@ -5,12 +5,10 @@ import { ObjectRules, Payload, RuleObjectInterface, ValidRule } from "src/types/
 import { RuleValidator } from "src/types/ruleLiteral.type";
 import RuleError from "./RuleError";
 import { notNull } from "src/utils/common";
-import Expose from "src/decorator/Expose.decorator";
 
 /**
  * 參數驗證器生成工廠
  */
-@Expose()
 @Injectable()
 export default class RuleObject {
   #optionalSymbol = "$";
@@ -58,6 +56,11 @@ export default class RuleObject {
     };
   }
 
+  /**
+   * 評估規則物件
+   * @param rule 參數規則物件
+   * @returns 1. `ruleLib` - 參數驗證器字典 2. `required` - 必要參數
+   */
   #evaluateRules(rule: RuleObjectInterface) {
     /** 參數驗證器字典 */
     const ruleLib: Record<string, (param: string, value: unknown) => void> = {};
@@ -66,26 +69,33 @@ export default class RuleObject {
     const required: string[] = [];
 
     this.#traverseObject(rule, (key, value) => {
+      /** 是否為非必要參數 */
       const optional = this.isOptionalParam(key);
 
+      // 1. 若為非必要參數，去除其前綴；若為必要參數，新增至必要參數陣列。
       if (optional) {
         key = key.slice(1);
       } else {
         required.push(key);
       }
 
+      // 2. 取得參數驗證器
       let validator: RuleValidator | undefined;
 
       if (typeof value === "symbol") {
+        // 2-1. 若規則物件為 symbol，判定其有可能是規則陣列，然後從規則陣列去找。
         validator = this.ruleArray.find(value).executor;
       } else if (Array.isArray(value)) {
+        // 2-2. 若規則物件是陣列，將其視為 `未定義` 的聯集規則，先定義後尋找。
         const token = this.ruleArray.defineUnion(...value);
 
         validator = this.ruleArray.find(token).executor;
       } else {
+        // 2-3. 其他三種可能性 `規則語法`、`正規表達式`、`函式` 都通過 StringRule 依賴去處理。
         validator = this.stringRule.evaluate(value as ValidRule);
       }
 
+      // 3. 將參數驗證器註冊進字典
       Object.defineProperty(ruleLib, key, {
         value: (param: string, value: unknown) => {
           const { valid, msg } = (validator as RuleValidator)(param, value);
@@ -104,6 +114,14 @@ export default class RuleObject {
     return param.startsWith(this.#optionalSymbol);
   }
 
+  /**
+   * 規則物件工廠
+   * @param target 規則物件
+   * @param canModifyKey 可否修改 key
+   * @param modifyKeyCallback 用來修改 key 的回呼
+   * @param canDefineProp 是否要取用該參數規則
+   * @returns payload 規則物件
+   */
   #wrapper(
     target: RuleObjectInterface,
     canModifyKey: (key: string) => boolean,

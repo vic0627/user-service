@@ -1,15 +1,13 @@
 import type { Task } from "src/types/scheduledTask.type";
 import { notNull } from "src/utils/common";
-import Service from "../serviceLayer/Service";
-import Expose from "src/decorator/Expose.decorator";
+import Service from "../../classes/Service";
 
 /** 排程管理器 */
-@Expose()
 export default class ScheduledTask {
   /** 任務清單 */
   #tasks = new Map<string, Task>();
   /** 排程計時器的 id，當此參數為 `undefined` 時，結束排程任務 */
-  #timer?: number;
+  #timer?: number | NodeJS.Timeout;
   /** 排程任務的執行間隔 */
   #interval: number = 1000 * 60 * 10;
 

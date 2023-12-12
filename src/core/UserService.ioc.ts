@@ -12,18 +12,71 @@ import PromiseInterceptors from "./requestHandler/requestPipe/PromiseInterceptor
 import ScheduledTask from "./scheduledTask/ScheduledTask.provider";
 import WebStorage from "./requestHandler/requestPipe/cacheStrategy/WebStorage.provider";
 import Path from "src/utils/Path.provider";
+import { TypeValidator } from "src/types/ruleLiteral.type";
+import { RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
+import { ServiceConfigRoot } from "src/types/userService.type";
+import ServiceFormData from "src/core/formData/ServcieFormData.provider";
 
 @IOCContainer({
-  provides: [TypeLib, Byte, ByteConvertor, XHR, PromiseInterceptors, ScheduledTask, WebStorage, Path],
+  provides: [TypeLib, Byte, ByteConvertor, XHR, PromiseInterceptors, ScheduledTask, WebStorage, Path, ServiceFormData],
   imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory, CacheManager],
 })
-class Module {
-  // 有 @Expose() 並且想在 index.ts 存取的模組要先聲明相應的儲存空間
-  TypeLib?: TypeLib;
-  RuleArray?: RuleArray;
-  RuleObject?: RuleObject;
-  ServiceFactory?: ServiceFactory;
-  ScheduledTask?: ScheduledTask;
+class UserService {
+  scheduledTask;
+
+  constructor(
+    private readonly st: ScheduledTask,
+    private readonly serviceFactory: ServiceFactory,
+    private readonly ruleArray: RuleArray,
+    private readonly ruleObject: RuleObject,
+    private readonly typeLib: TypeLib,
+    private readonly serviceFormData: ServiceFormData,
+  ) {
+    this.scheduledTask = this.st;
+  }
+
+  defineType(type: string, validator: TypeValidator) {
+    return this.typeLib.defineType(type, validator);
+  }
+
+  defineUnion(...rules: ValidRule[]) {
+    return this.ruleArray.defineUnion(...rules);
+  }
+  defineIntersection(...rules: ValidRule[]) {
+    return this.ruleArray.defineIntersection(...rules);
+  }
+
+  mergeRules(...targets: RuleObjectInterface[]) {
+    return this.ruleObject.mergeRules(...targets);
+  }
+
+  partialRules(target: RuleObjectInterface) {
+    return this.ruleObject.partialRules(target);
+  }
+
+  requiredRules(target: RuleObjectInterface) {
+    return this.ruleObject.requiredRules(target);
+  }
+
+  pickRules(target: RuleObjectInterface, ...args: (keyof RuleObjectInterface)[]) {
+    return this.ruleObject.pickRules(target, ...args);
+  }
+
+  omitRules(target: RuleObjectInterface, ...args: (keyof RuleObjectInterface)[]) {
+    return this.ruleObject.omitRules(target, ...args);
+  }
+
+  createService(serviceConfig: ServiceConfigRoot) {
+    return this.serviceFactory.createService(serviceConfig);
+  }
+
+  createFormData(object: Record<string, any> | any[], deep?: boolean) {
+    if (deep) {
+      return this.serviceFormData.deepBuildFormData(object);
+    }
+
+    return this.serviceFormData.buildFormData(object);
+  }
 }
 
-export default Module;
+export default UserService;

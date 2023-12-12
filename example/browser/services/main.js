@@ -4,8 +4,6 @@ import productService from "./serviceSlice/productService.js";
 import cartService from "./serviceSlice/cartService.js";
 import foolProof from "../../js/components/foolProof.js";
 
-const { createService } = storeService;
-
 /**
  * 非該 node level 限定的 Configuration 會往下(children, api)繼承，越 deep 的 config 權重越大。
  */
@@ -65,7 +63,7 @@ const serviceConfig = {
 /**
  * 使用此方法創建 API 抽象層
  */
-const service = createService(serviceConfig);
+const service = storeService.createService(serviceConfig);
 console.log(service);
 
 /**

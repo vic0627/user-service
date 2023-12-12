@@ -1,9 +1,7 @@
 import storeServcie from "./storeServcie.js";
 import { limitAndSortDescription, productQueryRules, positiveInt } from "./productService.js";
 
-const { mergeRules, partialRules, defineType } = storeServcie;
-
-defineType("cartitem", (value) => value?.productId > 0 && value?.quantity > 0);
+storeServcie.defineType("cartitem", (value) => value?.productId > 0 && value?.quantity > 0);
 
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -13,12 +11,12 @@ const cartIdRule = { cartId: positiveInt };
 
 const userIdRule = { userId: positiveInt };
 
-const cartItemRules = mergeRules(userIdRule, {
+const cartItemRules = storeServcie.mergeRules(userIdRule, {
   date: dateRegex,
   products: "cartitem[]",
 });
 
-const updateCartRules = mergeRules(cartItemRules, cartIdRule);
+const updateCartRules = storeServcie.mergeRules(cartItemRules, cartIdRule);
 
 const cartDescription = {
   userId: "使用者索引",
@@ -40,7 +38,7 @@ export default {
         },
         limitAndSortDescription,
       ),
-      rules: mergeRules(productQueryRules, {
+      rules: storeServcie.mergeRules(productQueryRules, {
         $startdate: dateRegex,
         $enddate: dateRegex,
       }),

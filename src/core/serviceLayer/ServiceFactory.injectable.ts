@@ -7,10 +7,9 @@ import type {
   ServiceConfigRoot,
 } from "src/types/userService.type";
 import Injectable from "src/decorator/Injectable.decorator";
-import Service from "./Service";
+import Service from "../../classes/Service";
 import APIFactory from "../requestHandler/APIFactory.injectable";
 import { deepClone, notNull } from "src/utils/common";
-import Expose from "src/decorator/Expose.decorator";
 import ScheduledTask from "../scheduledTask/ScheduledTask.provider";
 import Path from "src/utils/Path.provider";
 
@@ -18,7 +17,7 @@ import Path from "src/utils/Path.provider";
  * 抽象層建立、配置繼承與複寫
  * @todo 新增 `DecodeTime.provider.ts` 來轉換 `${days}d${hour}h${minute}m${second}s${millisecond}ms` 格式字串成數字
  */
-@Expose()
+
 @Injectable()
 export default class ServiceFactory {
   /** 當前處理節點是否為根節點(有 baseURL 的節點) */

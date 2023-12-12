@@ -137,7 +137,7 @@ export default class XHR implements RequestHandler {
       const requestPromise = new Promise<HttpResponse | void>((_resolve, _reject) => {
         const hasOnRequest = typeof onRequest === "function";
 
-        let timer: number;
+        let timer: number | NodeJS.Timeout;
 
         if (hasOnRequest) {
           timer = setInterval(onRequest, 50);
