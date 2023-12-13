@@ -5,7 +5,7 @@ import type {
   ServiceApiConfig,
   ServiceInterceptor,
 } from "src/types/userService.type";
-import type { RequestConfig } from "src/types/xhr.type";
+import type { RequestConfig, RequestExecutorResult } from "src/types/xhr.type";
 import type { Payload } from "src/types/ruleObject.type";
 import XHR from "./requestStrategy/XHR.provider";
 import Injectable from "src/decorator/Injectable.decorator";
@@ -16,6 +16,7 @@ import CacheManager from "./requestPipe/CacheManager.injectable";
 import RequestHandler from "src/abstract/RequestHandler.abstract";
 import PromiseInterceptors from "./requestPipe/PromiseInterceptors.provider";
 import Path from "src/utils/Path.provider";
+import { FinalApi } from "src/types/apiFactory.type";
 
 /**
  * 產出 **最終使用者介面(Final API)** 的工廠。
@@ -53,7 +54,7 @@ export default class APIFactory {
    * @param inheritConfig 其他從 service layer 繼承下來的配置
    * @returns Final API
    */
-  createAPI(apiConfig?: ServiceApiConfig, inheritConfig?: InheritConfig | RequestConfig) {
+  createAPI(apiConfig?: ServiceApiConfig, inheritConfig?: InheritConfig | RequestConfig): FinalApi {
     // 1. 配置繼承與複寫(第一次)
     const copy = this.#mergeConfig(inheritConfig, apiConfig) as ServiceApiConfig & RequestConfig;
 
@@ -109,7 +110,7 @@ export default class APIFactory {
       });
 
       if (exam) {
-        return exam;
+        return exam as RequestExecutorResult;
       }
 
       const paramDef = {

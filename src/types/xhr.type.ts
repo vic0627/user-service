@@ -79,7 +79,7 @@ export interface PromiseExecutor {
  * 1. 響應結果 Promise
  * 2. 取消請求控制器
  */
-export type RequestExecutorResult = [response: Promise<void | HttpResponse>, abortController: () => void];
+export type RequestExecutorResult = [response: Promise<void | HttpResponse> | {}, abortController: () => void];
 
 /**
  * 輸出 final API 的函式
@@ -107,4 +107,5 @@ export interface HttpResponse {
   headers: string | Record<string, string>;
   config: RequestConfig | undefined;
   request: XMLHttpRequest;
+  [x: string]: any;
 }

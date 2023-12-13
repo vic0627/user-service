@@ -1,3 +1,4 @@
+import { FinalApi } from "src/types/apiFactory.type";
 import { InheritConfig } from "src/types/userService.type";
 import { notNull } from "src/utils/common";
 
@@ -19,6 +20,8 @@ export default class Service {
 
   /** 該層通用配置 */
   _config?: InheritConfig;
+
+  [route: string]: FinalApi | Service | string | undefined | InheritConfig | ((globalTarget: any) => void);
 
   constructor() {}
 
