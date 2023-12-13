@@ -2,7 +2,7 @@
   "name": "user-service",
   "version": "0.0.1",
   "description": "",
-  "main": "dist/index.ts",
+  "main": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
     "lint": "eslint src",
@@ -10,7 +10,7 @@
     "format": "prettier . --write",
     "dev": "rollup -c scripts/rollup/rollupConfig.js --watch",
     "dev:browser": "node scripts/browserServer.js",
-    "build": "rollup -c scripts/rollup/rollupConfig.js",
+    "build": "node scripts/rollup/rollupBundle.js --manual",
     "prepare": "husky install"
   },
   "keywords": [],

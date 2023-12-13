@@ -41,11 +41,6 @@ const babelPlugin = babel(babelOptions);
 const output = [
   {
     name: "us",
-    file: getPath("dist/user-service.js"),
-    format: "iife",
-  },
-  {
-    name: "us",
     file: getPath("dist/user-service.esm.js"),
     format: "es",
     exports: "named",
@@ -63,6 +58,12 @@ const output = [
     format: "commonjs",
     exports: "named",
   },
+  // {
+  //   name: "us",
+  //   file: getPath("example/react-ts/node_modules/user-service/user-service.js"),
+  //   format: "es",
+  //   exports: "named",
+  // },
 ];
 
 const plugins = [babelPlugin, typescript(), nodeResolve(), cleanupPlugun];

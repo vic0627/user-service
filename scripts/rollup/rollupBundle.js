@@ -1,5 +1,6 @@
 const { rollup } = require("rollup");
 const { input, output, plugins } = require("./rollupConfig.js");
+const emptyDirectory = require("../utils/emptyDirectory.js");
 
 const inputOptions = { input, plugins };
 
@@ -16,6 +17,8 @@ const build = async (callback) => {
   let buildFailed = false;
 
   try {
+    // emptyDirectory(__dirname, "../../dist");
+
     bundle = await rollup(inputOptions);
 
     await generateOutputs(bundle);
