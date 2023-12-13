@@ -7,6 +7,11 @@ const serviceConfig = {
   name: "jsonPlaceholder",
   children: [postService],
   validation: true,
+  onRequestSucceed(res) {
+    const response = JSON.parse(res?.data);
+    res.data = response;
+    console.log(response);
+  },
 };
 
 const service = createService(serviceConfig);
