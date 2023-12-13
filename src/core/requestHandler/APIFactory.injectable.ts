@@ -126,11 +126,10 @@ export default class APIFactory {
       let url = runtimeOverWrite.url;
       url = this.#paramBuilder(url as string, payload, param, query);
 
-      /** @todo 新增階段 payload 建構，避免被帶入不必要屬性 */
-      let _payload;
+      let _payload = this.#payloadBuilder(payload, body);
 
       if (typeof onBeforeRequest === "function") {
-        _payload = onBeforeRequest(payload, paramDef);
+        _payload = onBeforeRequest(_payload, paramDef);
       }
 
       // 7. 請求初始化
@@ -234,6 +233,22 @@ export default class APIFactory {
     });
 
     return this.path.resolveURL({ paths: [url, ..._param], query: _query });
+  }
+
+  #payloadBuilder(payload: Payload, body?: ParamDef) {
+    const [bodyKeys] = this.#paramDeclarationDestructor(body);
+
+    const req: Record<string, any> = {};
+
+    bodyKeys.forEach((k) => {
+      const val = payload[k];
+
+      if (val) {
+        req[k] = payload[k];
+      }
+    });
+
+    return req;
   }
 
   #validationEngine(options: {
