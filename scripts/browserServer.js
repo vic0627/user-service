@@ -18,8 +18,6 @@ const init = async () => {
 
     await rollupBuild();
 
-    timeLog("rollup completed");
-
     const server = http.createServer((req, res) => {
       const filePath = req.url === "/" ? "./index.html" : req.url.includes("/dist") ? "../.." + req.url : "." + req.url;
       const fullPath = getPath("../example/browser", filePath);

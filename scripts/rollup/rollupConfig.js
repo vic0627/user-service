@@ -27,7 +27,7 @@ const terserOptions = {
 /** @type {import("rollup-plugin-cleanup").Options} */
 const cleanupOptions = { extensions: ["ts", "js", "cjs"], comments: [] };
 
-const cleanupPlugun = cleanup(cleanupOptions);
+const cleanupPlugin = cleanup(cleanupOptions);
 
 /** @type {import("@rollup/plugin-babel").RollupBabelOutputPluginOptions} */
 const babelOptions = {
@@ -58,14 +58,13 @@ const output = [
     format: "commonjs",
     exports: "named",
   },
-  // {
-  //   name: "us",
-  //   file: getPath("example/react-ts/node_modules/user-service/user-service.js"),
-  //   format: "es",
-  //   exports: "named",
-  // },
 ];
 
-const plugins = [babelPlugin, typescript(), nodeResolve(), cleanupPlugun];
+/** @type {import('@rollup/plugin-typescript').RollupTypescriptOptions} */
+const tsOption = {
+  tsconfig: getPath("./tsconfig.json"),
+};
+
+const plugins = [babelPlugin, typescript(tsOption), nodeResolve(), cleanupPlugin];
 
 module.exports = { input, output, plugins };

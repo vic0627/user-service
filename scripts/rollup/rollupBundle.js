@@ -1,25 +1,36 @@
 const { rollup } = require("rollup");
-const { input, output, plugins } = require("./rollupConfig.js");
 const emptyDirectory = require("../utils/emptyDirectory.js");
-
-const inputOptions = { input, plugins };
+const delay = require("../utils/delay.js");
+const timeLog = require("../utils/timeLog.js");
 
 const MANUAL_BUILD = process.argv[2] === "--manual";
-
-const generateOutputs = async (bundle) => {
-  for (const outputOptions of output) {
-    await bundle.write(outputOptions);
-  }
-};
 
 const build = async (callback) => {
   let bundle;
   let buildFailed = false;
 
   try {
-    // emptyDirectory(__dirname, "../../dist");
+    timeLog("start cleaning 'dist' dir...");
+
+    const clean = await emptyDirectory(__dirname, "../../dist");
+
+    if (!clean) throw new Error('failed to clean up "dist" dir');
+
+    const { input, output, plugins } = require("./rollupConfig.js");
+
+    const inputOptions = { input, plugins };
+
+    const generateOutputs = async (bundle) => {
+      for (const outputOptions of output) {
+        await bundle.write(outputOptions);
+      }
+    };
+
+    timeLog("start rollup...");
 
     bundle = await rollup(inputOptions);
+
+    timeLog("finish rollup");
 
     await generateOutputs(bundle);
 
