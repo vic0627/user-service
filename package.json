@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jest",
     "lint": "eslint src",
+    "lint:ts": "tsc --strict --noEmit",
     "lint:fix": "eslint src --fix",
     "format": "prettier . --write",
     "dev": "rollup -c scripts/rollup/rollupConfig.js --watch",
