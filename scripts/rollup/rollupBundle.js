@@ -1,6 +1,5 @@
 const { rollup } = require("rollup");
 const emptyDirectory = require("../utils/emptyDirectory.js");
-const delay = require("../utils/delay.js");
 const timeLog = require("../utils/timeLog.js");
 
 const MANUAL_BUILD = process.argv[2] === "--manual";
@@ -18,8 +17,6 @@ const build = async (callback) => {
 
     const { input, output, plugins } = require("./rollupConfig.js");
 
-    const inputOptions = { input, plugins };
-
     const generateOutputs = async (bundle) => {
       for (const outputOptions of output) {
         await bundle.write(outputOptions);
@@ -28,9 +25,7 @@ const build = async (callback) => {
 
     timeLog("start rollup...");
 
-    bundle = await rollup(inputOptions);
-
-    timeLog("finish rollup");
+    bundle = await rollup({ input, plugins });
 
     await generateOutputs(bundle);
 
