@@ -171,6 +171,7 @@ export default class RuleObject {
         Object.defineProperty(newRules, key, {
           value,
           enumerable: true,
+          configurable: true,
         });
       });
     }
