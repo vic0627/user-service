@@ -1,4 +1,4 @@
-import type { RequestDetail, RequestExecutor } from "src/types/xhr.type";
+import type { HttpResponse, RequestDetail, RequestExecutor } from "src/types/xhr.type";
 import type { PromiseStageHooks } from "src/types/userService.type";
 import RequestError from "../RequestError";
 import RequestPipe from "src/abstract/RequestPipe.abstract";
@@ -16,7 +16,7 @@ export default class PromiseInterceptors implements RequestPipe {
     return (() => {
       const [response, abort] = request(onRequest);
 
-      const promise = response
+      const promise = (response as Promise<HttpResponse>)
         .then((res) => {
           if (typeof onRequestSucceed === "function") {
             // 避免 client 直接從物件地址修改(in-place)，導致快取暫存到修改後的結果

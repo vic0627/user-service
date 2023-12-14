@@ -53,7 +53,7 @@ export default class CacheManager implements RequestPipe {
       const [response, abort] = request(onRequest);
 
       // 利用 Promise chaining 實現 middeware
-      const promise = response.then((res) =>
+      const promise = (response as Promise<HttpResponse>).then((res) =>
         this.#chainingCallback({ requestToken, res, executor, payload, cacheLifetime }),
       );
 
