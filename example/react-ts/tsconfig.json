@@ -18,7 +18,8 @@
         "../../dist/types/*",
       ],
       "@store-service": [
-        "./src/storeService/StoreAPI.tsx"
+        "./src/storeService/StoreAPI.tsx",
+        "./src/storeService/StoreContext.tsx"
       ]
     },
     "types": [],
