@@ -1,10 +1,11 @@
-import { useContext, useState, ChangeEvent } from "react";
+import { useContext, useState, ChangeEvent, useEffect } from "react";
 import "./App.css";
 import { storeServiceContext } from "@store-service";
 import type { FinalApi } from "@user-service/apiFactory.type";
 import type { HttpResponse } from "@user-service/xhr.type";
 import type { ProductInfo } from "./types/product.type";
 import ProductCard from "./components/ProductCard";
+import RuleError from "./storeService/components/RuleError";
 
 function App() {
   const [cache, setCache] = useState(true);
@@ -14,7 +15,21 @@ function App() {
 
   const [abort, setAbort] = useState<() => void>(() => () => {});
 
+  const [errors, setErrors] = useState<Error[]>([]);
+
   const store = useContext(storeServiceContext);
+
+  useEffect(() => {
+    store.setInterceptor({
+      onValidationFailed(err: Error) {
+        setErrors((errs) => [err, ...errs]);
+      },
+    });
+  }, []);
+
+  const popError = (index: number) => {
+    setErrors((errs) => errs.filter((_, i) => i !== index));
+  };
 
   const handleRequest = async () => {
     try {
@@ -34,6 +49,7 @@ function App() {
 
   return (
     <>
+      <RuleError errors={errors} popError={popError} />
       <div className="card">
         <div>
           <button onClick={() => setLimit((limit) => --limit)}>-</button>
