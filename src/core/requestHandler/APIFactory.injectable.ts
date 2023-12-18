@@ -17,6 +17,7 @@ import RequestHandler from "src/abstract/RequestHandler.abstract";
 import PromiseInterceptors from "./requestPipe/PromiseInterceptors.provider";
 import Path from "src/utils/Path.provider";
 import { FinalApi } from "src/types/apiFactory.type";
+import Service from "src/classes/Service";
 
 /**
  * 產出 **最終使用者介面(Final API)** 的工廠。
@@ -67,11 +68,13 @@ export default class APIFactory {
      * @param payload API 所需參數
      * @param requestConfig runtime API 配置
      */
-    return (payload: Payload = {}, requestConfig: FinalApiConfig = {}) => {
+    return (payload: Payload = {}, requestConfig: FinalApiConfig = {}, service?: Service) => {
       // 4. 配置繼承與複寫(第二次)
-      const runtimeOverWrite = this.#mergeConfig(copy, requestConfig) as ServiceApiConfig &
+      let runtimeOverWrite = this.#mergeConfig(copy, requestConfig) as ServiceApiConfig &
         RequestConfig &
         FinalApiConfig;
+
+      runtimeOverWrite = { ...runtimeOverWrite, ...service?._interceptor };
 
       const {
         method,

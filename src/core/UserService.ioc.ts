@@ -14,7 +14,7 @@ import WebStorage from "./requestHandler/requestPipe/cacheStrategy/WebStorage.pr
 import Path from "src/utils/Path.provider";
 import { TypeValidator } from "src/types/ruleLiteral.type";
 import { RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
-import { ServiceConfigRoot } from "src/types/userService.type";
+import { ServiceConfigRoot, ServiceInterceptor } from "src/types/userService.type";
 import ServiceFormData from "src/core/formData/ServcieFormData.provider";
 
 @IOCContainer({

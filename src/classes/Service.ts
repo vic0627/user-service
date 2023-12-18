@@ -1,5 +1,5 @@
 import { FinalApi } from "src/types/apiFactory.type";
-import { InheritConfig } from "src/types/userService.type";
+import { InheritConfig, ServiceInterceptor } from "src/types/userService.type";
 import { notNull } from "src/utils/common";
 
 /**
@@ -21,9 +21,32 @@ export default class Service {
   /** 該層通用配置 */
   _config?: InheritConfig;
 
-  [route: string]: FinalApi | Service | string | undefined | InheritConfig | ((globalTarget: any) => void);
+  _interceptor: ServiceInterceptor = {};
+
+  [route: string]:
+    | FinalApi
+    | Service
+    | string
+    | undefined
+    | InheritConfig
+    | ((globalTarget: any) => void)
+    | ServiceInterceptor;
 
   constructor() {}
+
+  setInterceptor(interceptor: ServiceInterceptor) {
+    this._interceptor = { ...this._interceptor, ...interceptor };
+
+    Object.entries(this).forEach(([key, value]) => {
+      if (key === "_parent") {
+        return;
+      }
+
+      if (value instanceof Service) {
+        value.setInterceptor(interceptor);
+      }
+    });
+  }
 
   /**
    * 將服務抽象層節點掛載至物件

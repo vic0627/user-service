@@ -1,5 +1,6 @@
 import type { RequestConfig } from "src/types/xhr.type";
 import type {
+  FinalApiConfig,
   InheritConfig,
   OverwriteConfig,
   ServiceApiConfig,
@@ -13,6 +14,7 @@ import { deepClone, notNull } from "src/utils/common";
 import ScheduledTask from "../scheduledTask/ScheduledTask.provider";
 import Path from "src/utils/Path.provider";
 import TypeLib from "../validationEngine/TypeLib.provider";
+import { Payload } from "src/types/ruleObject.type";
 
 /**
  * 抽象層建立、配置繼承與複寫
@@ -177,7 +179,8 @@ export default class ServiceFactory {
    */
   #buildAPI(service: Service, defaultConfig: RequestConfig, api?: ServiceApiConfig | ServiceApiConfig[]) {
     const build = (config: ServiceApiConfig) => {
-      const value = this.apiFactory.createAPI(config, defaultConfig);
+      const value = (payload: Payload = {}, requestConfig: FinalApiConfig = {}) =>
+        this.apiFactory.createAPI(config, defaultConfig)(payload, requestConfig, service);
 
       if (!config.name) {
         throw new Error("Name is required");
@@ -223,7 +226,7 @@ export default class ServiceFactory {
     children.forEach((child) => {
       if (singleMethod(child)) {
         // 2. 如果子路由只有一個方法，將它掛載到當前節點
-        const { name, value } = this.#buildSingleMethod(child, parentConfig as InheritConfig);
+        const { name, value } = this.#buildSingleMethod(child, parentConfig as InheritConfig, service);
 
         Object.defineProperty(service, name, {
           value,
@@ -238,6 +241,7 @@ export default class ServiceFactory {
 
         Object.defineProperty(service, value._name as string, {
           value,
+          enumerable: true,
         });
       }
     });
@@ -248,7 +252,7 @@ export default class ServiceFactory {
    * @param child 子路由配置
    * @param parentConfig 上層 Service 的配置
    */
-  #buildSingleMethod(child: ServiceConfigChild, parentConfig: InheritConfig) {
+  #buildSingleMethod(child: ServiceConfigChild, parentConfig: InheritConfig, service: Service) {
     const { route, api } = child;
     const { baseURL } = parentConfig;
 
@@ -266,7 +270,8 @@ export default class ServiceFactory {
       throw new Error("Name or route must required when defining single method");
     }
 
-    const value = this.apiFactory.createAPI(api as ServiceApiConfig, configCopy);
+    const value = (payload: Payload = {}, requestConfig: FinalApiConfig = {}) =>
+      this.apiFactory.createAPI(api as ServiceApiConfig, configCopy)(payload, requestConfig, service);
 
     return { name, value };
   }

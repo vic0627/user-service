@@ -18,52 +18,52 @@ const us = new UserService(
 
 /**
  * ## ScheduledTask
- * 
+ *
  * ScheduledTask serves as a scheduler for managing and executing tasks at specified intervals.
  * The module provides functionality to add tasks, both anonymous and named, to a task list.
  * These tasks are then executed periodically based on a configurable interval.
- * 
+ *
  * ### key Features
- * 
+ *
  * 1. Task Management:
- * 
+ *
  *    - The module maintains a collection of tasks using a Map structure.
  *    - Tasks can be either anonymous (non-named) or named, allowing for flexibility in task management.
- * 
+ *
  * 2. Interval Configuration:
- * 
+ *
  *    - The execution interval for scheduled tasks is configurable,
  *      allowing users to set the frequency at which tasks are executed.
  *    - The default interval is set to 10 minutes (1000 * 60 * 10 milliseconds).
- * 
+ *
  * 3. Task Execution:
- * 
+ *
  *    - The execute method triggers the immediate execution of tasks.
  *    - Tasks are executed asynchronously at regular intervals based on the configured interval.
- * 
+ *
  * 4. Task Addition:
- * 
+ *
  *    - Tasks can be added to the scheduler using the addTask method.
  *      These tasks are assigned random names and are added to the
  *      task list regardless of whether similar tasks already exist.
  *    - Singleton tasks, added using the addSingletonTask method,
  *      are named tasks that are only added if a task with the same name does not already exist in the task list.
- * 
+ *
  * 5. Interval Adjustment:
- * 
+ *
  *    - The setInterval method allows for the dynamic adjustment of the execution interval.
  *      It performs validation to ensure that the interval is a positive number and that the
  *      adjustment is not attempted when the service has a parent (presumably, a Service instance).
- * 
+ *
  * 6. Task Execution Control:
- * 
+ *
  *    - The module starts and stops the scheduling of tasks based on the presence of tasks in the task list.
  *      The scheduling is controlled by an interval timer.
- * 
+ *
  * 7. Task Cleanup:
- * 
+ *
  *    - The clearSchedule method stops the scheduling of tasks and clears the entire task list.
- * 
+ *
  */
 export const scheduledTask = us.scheduledTask;
 
