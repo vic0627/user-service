@@ -1,11 +1,11 @@
-import { Alert, AlertTitle, Collapse, Slide } from "@mui/material";
-import { Reducer, useEffect, useReducer, useRef, useState } from "react";
+import { Alert, AlertTitle, Collapse, List, ListItem } from "@mui/material";
+import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { TransitionGroup } from "react-transition-group";
 import useTimer from "../../composable/useTimer";
 import styled from "styled-components";
 
-const ErrorPortal = styled(TransitionGroup)`
+const StyledList = styled(List)`
   width: 100%;
   position: fixed;
   top: 0;
@@ -13,39 +13,49 @@ const ErrorPortal = styled(TransitionGroup)`
   right: 0;
   z-index: 9999;
   pointer-events: none;
+  padding-top: 10px;
   display: flex;
-  flex-direction: column-reverse;
-  padding-top: 20px;
-  gap: 20px;
+  justify-content: center;
 `;
 
 const StyledAlert = styled(Alert)`
   pointer-events: visible;
 `;
 
-const RuleError = ({ errors, popError }: { errors: Error[]; popError: (index: number) => void }) => {
+const RuleError = ({
+  errors,
+  popError,
+}: {
+  errors: { error: Error; id: number }[];
+  popError: (index: number) => void;
+}) => {
   const [timerKillers, setTimerKillers] = useState<(() => void)[]>([]);
-  const [effectLock, setEffectLock] = useState(false);
 
-  const clearAllTimers = () => {
+  const clearAllTimers = useCallback(() => {
     timerKillers.forEach((killer) => killer());
-  };
+    setTimerKillers([]);
+  }, [timerKillers]);
 
-  const deleteTimer = (i: number) => {
-    timerKillers[i]();
+  const deleteTimer = useCallback((i: number) => {
+    const timeKiller = timerKillers[i];
+    if (typeof timeKiller === "function") timeKiller();
     setTimerKillers((killers) => killers.filter((_, _i) => _i !== i));
-  };
+  }, [timerKillers]);
+
+  const pop = useCallback((i: number) => {
+    deleteTimer(i);
+    popError(i);
+  }, []);
 
   useEffect(() => {
-    if (effectLock) return;
-
+    /** @todo 優化 - 離開的速度 */
     clearAllTimers();
 
-    const setTime = (t: number) => 3000 + (500 / errors.length) * t;
+    const setTime = (t: number) => 1000 + (100 / errors.length) * t;
 
     const timers = errors.map((_, i) =>
       useTimer(() => {
-        popError(i);
+        pop(i);
       }, setTime(i)),
     );
 
@@ -53,22 +63,25 @@ const RuleError = ({ errors, popError }: { errors: Error[]; popError: (index: nu
   }, [errors]);
 
   return createPortal(
-    <ErrorPortal>
-      {errors.map((error, i) => (
-        <Collapse key={error.name + i}>
-          <StyledAlert
-            severity="error"
-            onClose={() => {
-              deleteTimer(i);
-              popError(i);
-            }}
-          >
-            <AlertTitle>{error.name}</AlertTitle>
-            {error.message}
-          </StyledAlert>
-        </Collapse>
-      ))}
-    </ErrorPortal>,
+    <StyledList
+      sx={{
+        position: "fixed",
+        pt: "10px",
+      }}
+    >
+      <TransitionGroup>
+        {errors.map((err, i) => (
+          <Collapse key={err.id}>
+            <ListItem>
+              <StyledAlert severity="error" onClose={() => pop(i)}>
+                <AlertTitle>{err.error.name}</AlertTitle>
+                {err.error.message}
+              </StyledAlert>
+            </ListItem>
+          </Collapse>
+        ))}
+      </TransitionGroup>
+    </StyledList>,
     document.body,
   );
 };

@@ -5,7 +5,6 @@ const useTimer = (callback: () => void, ms: number) => {
   }, ms);
 
   const clearTimer = () => {
-    console.log("timer killed");
     clearTimeout(timer);
   };
 

@@ -15,14 +15,14 @@ function App() {
 
   const [abort, setAbort] = useState<() => void>(() => () => {});
 
-  const [errors, setErrors] = useState<Error[]>([]);
+  const [errors, setErrors] = useState<{ error: Error; id: number }[]>([]);
 
   const store = useContext(storeServiceContext);
 
   useEffect(() => {
     store.setInterceptor({
-      onValidationFailed(err: Error) {
-        setErrors((errs) => [err, ...errs]);
+      onValidationFailed(error: Error) {
+        setErrors((errs) => [{ error, id: Math.random() }, ...errs]);
       },
     });
   }, []);
