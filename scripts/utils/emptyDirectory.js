@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
-
+const timeLog = require("../utils/timeLog.js");
 const readdir = promisify(fs.readdir);
 const unlink = promisify(fs.unlink);
 const rmdir = promisify(fs.rmdir);
@@ -58,8 +58,8 @@ module.exports = async function emptyDirectory(...resolvePath) {
     timeLog(error.message);
 
     const distNotExisit = error.message?.includes(
-      "ENOENT: no such file or directory, scandir '/Users/pure90719/code/user-service/dist'",
-    );
+      "ENOENT: no such file or directory, scandir",
+    ) && error.message?.includes("dist");
 
     return !!distNotExisit;
   }

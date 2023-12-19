@@ -5,6 +5,7 @@ const timeLog = require("../utils/timeLog.js");
 const MANUAL_BUILD = process.argv[2] === "--manual";
 
 const build = async (callback) => {
+  /** @type {import('rollup').RollupBuild | undefined} */
   let bundle;
   let buildFailed = false;
 
@@ -17,6 +18,7 @@ const build = async (callback) => {
 
     const { input, output, plugins } = require("./rollupConfig.js");
 
+    /** @param {import('rollup').RollupBuild} bundle  */
     const generateOutputs = async (bundle) => {
       for (const outputOptions of output) {
         await bundle.write(outputOptions);
