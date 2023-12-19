@@ -8,7 +8,9 @@ export type ObjectRules = symbol | ValidRule | ValidRule[];
 
 export type RuleObjectInterface = Record<PropKey, ObjectRules>;
 
-export type Payload = Record<PropKey, unknown>;
+export interface Payload {
+  [key: string]: any;
+}
 
 export interface TypeCheckResult {
   rotCheck: boolean;
