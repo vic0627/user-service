@@ -1,5 +1,5 @@
 export default (callback: () => void = () => {}, ms: number = 10) => {
-  const premise = new Promise((resolve) => {
+  const promise = new Promise((resolve) => {
     const t = setTimeout(() => {
       callback();
       clearTimeout(t);
@@ -7,5 +7,5 @@ export default (callback: () => void = () => {}, ms: number = 10) => {
     }, ms);
   });
 
-  return premise;
+  return promise;
 };

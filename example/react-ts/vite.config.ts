@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@store-service": resolve(__dirname, "./src/storeService/storeContext.tsx"),
+      "@store-service": resolve(__dirname, "./src/storeService/storeContext.ts"),
       "@user-service": resolve(__dirname, "../../dist/user-service.esm.js"),
       "@user-service/*": resolve(__dirname, "../../dist/types/*"),
     },

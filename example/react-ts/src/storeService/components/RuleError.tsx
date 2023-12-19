@@ -4,16 +4,16 @@ import { createPortal } from "react-dom";
 import { TransitionGroup } from "react-transition-group";
 import useTimer from "../../composable/useTimer";
 import styled from "styled-components";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { del } from "../../store/slice/ruleErrorSlice";
 
 const StyledList = styled(List)`
   width: 100%;
-  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 9999;
   pointer-events: none;
-  padding-top: 10px;
   display: flex;
   justify-content: center;
 `;
@@ -22,27 +22,31 @@ const StyledAlert = styled(Alert)`
   pointer-events: visible;
 `;
 
-const RuleError = ({
-  errors,
-  popError,
-}: {
-  errors: { error: Error; id: number }[];
-  popError: (index: number) => void;
-}) => {
+const RuleError = () => {
   const [timerKillers, setTimerKillers] = useState<(() => void)[]>([]);
+
+  const dispatch = useAppDispatch();
+  const errors = useAppSelector((state) => state.ruleErrorSlice.errors);
+
+  const popError = useCallback((i: number) => {
+    dispatch(del(i));
+  }, []);
 
   const clearAllTimers = useCallback(() => {
     timerKillers.forEach((killer) => killer());
     setTimerKillers([]);
   }, [timerKillers]);
 
-  const deleteTimer = useCallback((i: number) => {
-    const timeKiller = timerKillers[i];
-    if (typeof timeKiller === "function") timeKiller();
-    setTimerKillers((killers) => killers.filter((_, _i) => _i !== i));
-  }, [timerKillers]);
+  const deleteTimer = useCallback(
+    (i: number) => {
+      const timeKiller = timerKillers[i];
+      if (typeof timeKiller === "function") timeKiller();
+      setTimerKillers((killers) => killers.filter((_, _i) => _i !== i));
+    },
+    [timerKillers],
+  );
 
-  const pop = useCallback((i: number) => {
+  const handleOnClose = useCallback((i: number) => {
     deleteTimer(i);
     popError(i);
   }, []);
@@ -55,7 +59,7 @@ const RuleError = ({
 
     const timers = errors.map((_, i) =>
       useTimer(() => {
-        pop(i);
+        handleOnClose(i);
       }, setTime(i)),
     );
 
@@ -73,9 +77,9 @@ const RuleError = ({
         {errors.map((err, i) => (
           <Collapse key={err.id}>
             <ListItem>
-              <StyledAlert severity="error" onClose={() => pop(i)}>
-                <AlertTitle>{err.error.name}</AlertTitle>
-                {err.error.message}
+              <StyledAlert severity="error" onClose={() => handleOnClose(i)}>
+                <AlertTitle>{err.name}</AlertTitle>
+                {err.message}
               </StyledAlert>
             </ListItem>
           </Collapse>

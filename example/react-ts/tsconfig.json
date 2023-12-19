@@ -18,7 +18,7 @@
         "../../dist/types/*",
       ],
       "@store-service": [
-        "./src/storeService/StoreContext.tsx"
+        "./src/storeService/storeContext.ts"
       ]
     },
     "types": [],
