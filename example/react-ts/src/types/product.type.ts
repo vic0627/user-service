@@ -10,9 +10,3 @@ export interface ProductInfo {
     count: number;
   };
 }
-
-export interface UniqueRuleError {
-  name: string;
-  message: string;
-  id: number;
-}

@@ -17,9 +17,15 @@
       "@user-service/*": [
         "../../dist/types/*",
         "../../dist/classes/*",
+        "../../dist/abstract/*",
+        "../../dist/assets/*",
+        "../../dist/core/*",
       ],
       "@store-service": [
         "./src/storeService/storeContext.ts"
+      ],
+      "src/*": [
+        "./src/*"
       ]
     },
     "types": [],

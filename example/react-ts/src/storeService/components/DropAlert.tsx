@@ -2,10 +2,10 @@ import { Alert, AlertTitle, Collapse, List, ListItem } from "@mui/material";
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { TransitionGroup } from "react-transition-group";
-import useTimer from "../../composable/useTimer";
+import useTimer from "src/composable/useTimer";
 import styled from "styled-components";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { del } from "../../store/slice/ruleErrorSlice";
+import { useAlertSelector, useAppDispatch } from "src/store/hooks";
+import { clear, del } from "src/store/slice/alertSlice";
 
 const StyledList = styled(List)`
   width: 100%;
@@ -22,11 +22,14 @@ const StyledAlert = styled(Alert)`
   pointer-events: visible;
 `;
 
-const RuleError = () => {
+let fadeLock = false;
+
+const DropAlert = () => {
   const [timerKillers, setTimerKillers] = useState<(() => void)[]>([]);
+  // const [fadeLock, setFadeLock] = useState(false);
 
   const dispatch = useAppDispatch();
-  const errors = useAppSelector((state) => state.ruleErrorSlice.errors);
+  const alert = useAlertSelector();
 
   const popError = useCallback((i: number) => {
     dispatch(del(i));
@@ -51,20 +54,38 @@ const RuleError = () => {
     popError(i);
   }, []);
 
-  useEffect(() => {
-    /** @todo 優化 - 離開的速度 */
-    clearAllTimers();
+  // useEffect(() => {
+  //   if (fadeLock) return;
 
-    const setTime = (t: number) => 1000 + (100 / errors.length) * t;
+  //   const t = setTimeout(() => {
+  //     dispatch(
+  //       clear(function () {
+  //         fadeLock = true;
+  //       }),
+  //     );
+  //     clearTimeout(t);
+  //   }, 1000);
 
-    const timers = errors.map((_, i) =>
-      useTimer(() => {
-        handleOnClose(i);
-      }, setTime(i)),
-    );
+  //   return () => {
+  //     clearTimeout(t);
+  //     fadeLock = false;
+  //   };
+  // }, [alert]);
 
-    setTimerKillers(timers);
-  }, [errors]);
+  // useEffect(() => {
+  //   /** @todo 優化 - 離開的速度 */
+  //   clearAllTimers();
+
+  //   const setTime = (t: number) => 1000 + (100 / alert.length) * t;
+
+  //   const timers = alert.map((_, i) =>
+  //     useTimer(() => {
+  //       handleOnClose(i);
+  //     }, setTime(i)),
+  //   );
+
+  //   setTimerKillers(timers);
+  // }, [alert]);
 
   return createPortal(
     <StyledList
@@ -74,12 +95,16 @@ const RuleError = () => {
       }}
     >
       <TransitionGroup>
-        {errors.map((err, i) => (
-          <Collapse key={err.id}>
+        {alert.map((item, i) => (
+          <Collapse key={item._id}>
             <ListItem>
-              <StyledAlert severity="error" onClose={() => handleOnClose(i)}>
-                <AlertTitle>{err.name}</AlertTitle>
-                {err.message}
+              <StyledAlert
+                severity={item.type || "error"}
+                variant={item.variant || "standard"}
+                onClose={() => handleOnClose(i)}
+              >
+                <AlertTitle>{item.title}</AlertTitle>
+                {item.message}
               </StyledAlert>
             </ListItem>
           </Collapse>
@@ -90,4 +115,4 @@ const RuleError = () => {
   );
 };
 
-export default RuleError;
+export default DropAlert;

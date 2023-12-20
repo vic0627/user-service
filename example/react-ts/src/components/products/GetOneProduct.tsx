@@ -6,13 +6,12 @@ import { useStoreService } from "@store-service";
 import { ProductInfo } from "src/types/product.type";
 import { TextField } from "@mui/material";
 import { HttpResponse } from "@user-service/xhr.type";
-import { useAppSelector } from "../../store/hooks";
-import { selectRuleError } from "../../store/slice/ruleErrorSlice";
+import { useAlertSelector } from "src/store/hooks";
 
 const GetOneProduct = () => {
   const store = useStoreService();
 
-  const errors = useAppSelector(selectRuleError);
+  const alert = useAlertSelector();
 
   const [resultBox, setResultBox] = useState(false);
 
@@ -56,8 +55,8 @@ const GetOneProduct = () => {
   }, []);
 
   useEffect(() => {
-    if (errors.findIndex((err) => err.message.includes("id")) !== -1) setError(true);
-  }, [errors]);
+    if (alert.findIndex((err) => err.message.includes("id")) !== -1) setError(true);
+  }, [alert]);
 
   return (
     <>

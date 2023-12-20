@@ -1,4 +1,3 @@
-import { Box, Dialog } from "@mui/material";
 import { Reducer, useCallback, useContext, useReducer, useState } from "react";
 import { storeServiceContext } from "@store-service";
 import LimitAndSort from "../LimitAndSort";

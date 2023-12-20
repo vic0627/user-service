@@ -1,7 +1,6 @@
 import { MenuItem, TextField } from "@mui/material";
 import { ChangeEventHandler, Reducer, useEffect, useReducer, useState } from "react";
-import { useAppSelector } from "../store/hooks";
-import { selectRuleError } from "../store/slice/ruleErrorSlice";
+import { useAlertSelector } from "src/store/hooks";
 export interface ValueModel {
   limit?: number;
   sort?: string;
@@ -44,15 +43,15 @@ const LimitAndSort = (options: LimitAndSortOptions) => {
   const [limitError, setLimitError] = useState(false);
   const [sortError, setSortError] = useState(false);
 
-  const errors = useAppSelector(selectRuleError);
+  const alert = useAlertSelector();
 
   useEffect(() => {
     if (typeof onChange === "function") onChange(value);
 
-    if (errors.findIndex((item) => item.message.includes("limit")) !== -1) setLimitError(true);
+    if (alert.findIndex((item) => item.message.includes("limit")) !== -1) setLimitError(true);
 
-    if (errors.findIndex((item) => item.message.includes("sort")) !== -1) setSortError(true);
-  }, [value, errors]);
+    if (alert.findIndex((item) => item.message.includes("sort")) !== -1) setSortError(true);
+  }, [value, alert]);
 
   const handleSortOnChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
     const sort = e.target.value;

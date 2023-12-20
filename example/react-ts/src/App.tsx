@@ -1,9 +1,9 @@
 import { useContext, useEffect } from "react";
 import { storeServiceContext } from "@store-service";
-import RuleError from "./storeService/components/RuleError";
+import DropAlert from "./storeService/components/DropAlert";
 import GetAllProducts from "./components/products/GetAllProducts";
 import { useAppDispatch } from "./store/hooks";
-import { add } from "./store/slice/ruleErrorSlice";
+import { add } from "./store/slice/alertSlice";
 import GetOneProduct from "./components/products/GetOneProduct";
 
 function App() {
@@ -15,18 +15,18 @@ function App() {
     store.setInterceptor({
       onValidationFailed(error: Error) {
         const { name, message } = error;
-        dispatch(add({ name, message, id: Math.random() }));
+        dispatch(add({ title: name, message, _id: Math.random() }));
       },
       onRequestFailed(error: Error) {
         const { name, message } = error;
-        dispatch(add({ name, message, id: Math.random() }));
-      }
+        dispatch(add({ title: name, message, _id: Math.random() }));
+      },
     });
   }, []);
 
   return (
     <>
-      <RuleError />
+      <DropAlert />
       <GetAllProducts />
       <GetOneProduct />
     </>
