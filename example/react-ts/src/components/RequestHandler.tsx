@@ -6,7 +6,7 @@ import { useState } from "react";
 
 const StyledButtonGroup = styled(ButtonGroup)``;
 
-interface RequestHandlerOptions {
+export interface RequestHandlerOptions {
   onSend?(endReq: () => void): void | Promise<void>;
   onAbort?(): void;
 }
@@ -31,7 +31,7 @@ const RequestHandler = (options: RequestHandlerOptions) => {
   };
 
   return (
-    <StyledButtonGroup size="medium" orientation="vertical" fullWidth>
+    <StyledButtonGroup size="medium" orientation="vertical" fullWidth sx={{mt: 2}}>
       <LoadingButton
         color="primary"
         variant="contained"

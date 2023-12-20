@@ -1,7 +1,7 @@
 import { FormControlLabel, Switch } from "@mui/material";
 import { useEffect, useState } from "react";
 
-interface CacheToggleOptions {
+export interface CacheToggleOptions {
   onCacheChange?(cache: boolean): void;
 }
 
@@ -22,6 +22,7 @@ const CacheToggle = ({ onCacheChange }: CacheToggleOptions) => {
       label="Cache"
       onChange={handleChange}
       labelPlacement="start"
+      sx={{mt: 1}}
     />
   );
 };

@@ -1,6 +1,8 @@
 import { createFormData, mergeRules, partialRules } from "@user-service";
 import type { ServiceConfigChild } from "@user-service/userService.type";
 import { Payload } from "@user-service/ruleObject.type";
+import Service from "@user-service/Service";
+import { FinalApi } from "@user-service/apiFactory.type";
 
 export const limitAndSortDescription = {
   limit: "回傳商品數量限制，正整數",
@@ -130,3 +132,14 @@ export default {
     },
   ],
 } as ServiceConfigChild;
+
+export interface ProductsChildren<T = FinalApi> extends Service {
+  getAll: T;
+  getById: T;
+  create: T;
+  update: T;
+  modify: T;
+  delete: T;
+  getCategories: T;
+  getProductsIn: T;
+}

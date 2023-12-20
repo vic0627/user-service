@@ -1,5 +1,7 @@
 import { MenuItem, TextField } from "@mui/material";
-import { ChangeEventHandler, Reducer, useEffect, useReducer } from "react";
+import { ChangeEventHandler, Reducer, useEffect, useReducer, useState } from "react";
+import { useAppSelector } from "../store/hooks";
+import { selectRuleError } from "../store/slice/ruleErrorSlice";
 export interface ValueModel {
   limit?: number;
   sort?: string;
@@ -11,7 +13,6 @@ interface ValueAction extends ValueModel {
 
 interface LimitAndSortOptions {
   onChange?(value: ValueModel): void;
-  
 }
 
 const valueReducer: Reducer<ValueModel, ValueAction> = (state, action) => {
@@ -38,11 +39,20 @@ const sortOptions = [
 const LimitAndSort = (options: LimitAndSortOptions) => {
   const { onChange = () => {} } = options;
 
-  const [value, dispatchValue] = useReducer(valueReducer, {});
+  const [value, dispatchValue] = useReducer(valueReducer, { sort: "asc" });
+
+  const [limitError, setLimitError] = useState(false);
+  const [sortError, setSortError] = useState(false);
+
+  const errors = useAppSelector(selectRuleError);
 
   useEffect(() => {
     if (typeof onChange === "function") onChange(value);
-  }, [value]);
+
+    if (errors.findIndex((item) => item.message.includes("limit")) !== -1) setLimitError(true);
+
+    if (errors.findIndex((item) => item.message.includes("sort")) !== -1) setSortError(true);
+  }, [value, errors]);
 
   const handleSortOnChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
     const sort = e.target.value;
@@ -64,7 +74,9 @@ const LimitAndSort = (options: LimitAndSortOptions) => {
         select
         defaultValue="asc"
         // helperText="Please select a sort strategy"
+        error={sortError}
         onChange={handleSortOnChange}
+        onFocus={() => setSortError(false)}
       >
         {sortOptions.map((o) => (
           <MenuItem key={o.value} value={o.value}>
@@ -72,7 +84,14 @@ const LimitAndSort = (options: LimitAndSortOptions) => {
           </MenuItem>
         ))}
       </TextField>
-      <TextField label="Limit" size="small" type="number" onChange={handleLimitOnChange} />
+      <TextField
+        label="Limit"
+        size="small"
+        type="number"
+        error={limitError}
+        onChange={handleLimitOnChange}
+        onFocus={() => setLimitError(false)}
+      />
     </>
   );
 };

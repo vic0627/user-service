@@ -1,14 +1,13 @@
-import { Box } from "@mui/material";
-import CacheToggle from "../CacheToggle";
+import { Box, Dialog } from "@mui/material";
 import { Reducer, useCallback, useContext, useReducer, useState } from "react";
 import { storeServiceContext } from "@store-service";
-import RequestHandler from "../RequestHandler";
 import LimitAndSort from "../LimitAndSort";
 import { ValueModel } from "../LimitAndSort";
-import type { FinalApi } from "@user-service/apiFactory.type";
 import type { HttpResponse } from "@user-service/xhr.type";
 import type { ProductInfo } from "src/types/product.type";
 import ProductCard from "../ProductCard";
+import RequestForm from "../RequestForm";
+import ResultDialog from "../ResultDialog";
 
 interface PayloadOptions {
   limit?: number;
@@ -47,6 +46,8 @@ const formValueReducer: Reducer<FormOptions, FormAction> = (state, action) => {
 const GetAllProducts = () => {
   const store = useContext(storeServiceContext);
 
+  const [resultBox, setResultBox] = useState(false);
+
   const [abort, setAbort] = useState<() => void>(() => () => {});
 
   const [allProducts, setAllProducts] = useState<ProductInfo[]>([]);
@@ -70,7 +71,7 @@ const GetAllProducts = () => {
       if (limit !== undefined) payload.limit = limit;
       if (sort !== undefined) payload.sort = sort;
 
-      const [allProd, abortAllProd] = (store.products.getAll as FinalApi)(payload, { cache });
+      const [allProd, abortAllProd] = store.products.getAll(payload, { cache });
 
       setAbort(() => abortAllProd);
 
@@ -81,6 +82,7 @@ const GetAllProducts = () => {
       const data = (res as HttpResponse).data as ProductInfo[];
 
       setAllProducts(data);
+      setResultBox(true);
     } catch (error) {
       console.error(error);
     } finally {
@@ -90,16 +92,14 @@ const GetAllProducts = () => {
 
   return (
     <>
-      <Box>
+      <RequestForm title="Get All Products" onSend={onSend} onAbort={abort} onCacheChange={onCacheChange}>
         <LimitAndSort onChange={onLimitAndSortChange} />
-        <CacheToggle onCacheChange={onCacheChange} />
-        <RequestHandler onSend={onSend} onAbort={abort} />
-        <Box>
-          {allProducts.map((info) => (
-            <ProductCard key={info.title + info.id} value={info} />
-          ))}
-        </Box>
-      </Box>
+      </RequestForm>
+      <ResultDialog title="All Products" open={resultBox} onClose={() => setResultBox(false)}>
+        {allProducts.map((info) => (
+          <ProductCard key={info.title + info.id} value={info} />
+        ))}
+      </ResultDialog>
     </>
   );
 };

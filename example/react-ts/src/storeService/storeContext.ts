@@ -1,6 +1,11 @@
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 import { createService } from "@user-service";
-import products from "./slices/products";
+import products, { ProductsChildren } from "./slices/products";
+import Service from "@user-service/Service";
+
+interface StoreService extends Service {
+  products: ProductsChildren;
+}
 
 export const storeService = createService({
   baseURL: "https://fakestoreapi.com/",
@@ -26,6 +31,8 @@ export const storeService = createService({
     console.log("get result from onRequestSucceed", res);
     return res;
   },
-});
+}) as StoreService;
 
 export const storeServiceContext = createContext(storeService);
+
+export const useStoreService = () => useContext(storeServiceContext);

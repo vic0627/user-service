@@ -16,6 +16,7 @@
       ],
       "@user-service/*": [
         "../../dist/types/*",
+        "../../dist/classes/*",
       ],
       "@store-service": [
         "./src/storeService/storeContext.ts"

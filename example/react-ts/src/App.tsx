@@ -4,6 +4,7 @@ import RuleError from "./storeService/components/RuleError";
 import GetAllProducts from "./components/products/GetAllProducts";
 import { useAppDispatch } from "./store/hooks";
 import { add } from "./store/slice/ruleErrorSlice";
+import GetOneProduct from "./components/products/GetOneProduct";
 
 function App() {
   const store = useContext(storeServiceContext);
@@ -16,6 +17,10 @@ function App() {
         const { name, message } = error;
         dispatch(add({ name, message, id: Math.random() }));
       },
+      onRequestFailed(error: Error) {
+        const { name, message } = error;
+        dispatch(add({ name, message, id: Math.random() }));
+      }
     });
   }, []);
 
@@ -23,6 +28,7 @@ function App() {
     <>
       <RuleError />
       <GetAllProducts />
+      <GetOneProduct />
     </>
   );
 }

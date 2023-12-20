@@ -36,6 +36,6 @@ export const ruleErrorSlice = createSlice({
 
 export const { add, del, clear } = ruleErrorSlice.actions;
 
-export const selectRuleError = (state: RootState) => state.ruleError.errors;
+export const selectRuleError = (state: RootState) => state.ruleErrorSlice.errors;
 
 export default ruleErrorSlice.reducer;
