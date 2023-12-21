@@ -5,7 +5,7 @@ import { TransitionGroup } from "react-transition-group";
 import useTimer from "src/composable/useTimer";
 import styled from "styled-components";
 import { useAlertSelector, useAppDispatch } from "src/store/hooks";
-import { clear, del } from "src/store/slice/alertSlice";
+import { del } from "src/store/slice/alertSlice";
 
 const StyledList = styled(List)`
   width: 100%;
@@ -21,8 +21,6 @@ const StyledList = styled(List)`
 const StyledAlert = styled(Alert)`
   pointer-events: visible;
 `;
-
-let fadeLock = false;
 
 const DropAlert = () => {
   const [timerKillers, setTimerKillers] = useState<(() => void)[]>([]);
@@ -54,38 +52,20 @@ const DropAlert = () => {
     popError(i);
   }, []);
 
-  // useEffect(() => {
-  //   if (fadeLock) return;
+  useEffect(() => {
+    /** @todo 優化 - 離開的速度 */
+    clearAllTimers();
 
-  //   const t = setTimeout(() => {
-  //     dispatch(
-  //       clear(function () {
-  //         fadeLock = true;
-  //       }),
-  //     );
-  //     clearTimeout(t);
-  //   }, 1000);
+    const setTime = (t: number) => 1000 + (100 / alert.length) * t;
 
-  //   return () => {
-  //     clearTimeout(t);
-  //     fadeLock = false;
-  //   };
-  // }, [alert]);
+    const timers = alert.map((_, i) =>
+      useTimer(() => {
+        handleOnClose(i);
+      }, setTime(i)),
+    );
 
-  // useEffect(() => {
-  //   /** @todo 優化 - 離開的速度 */
-  //   clearAllTimers();
-
-  //   const setTime = (t: number) => 1000 + (100 / alert.length) * t;
-
-  //   const timers = alert.map((_, i) =>
-  //     useTimer(() => {
-  //       handleOnClose(i);
-  //     }, setTime(i)),
-  //   );
-
-  //   setTimerKillers(timers);
-  // }, [alert]);
+    setTimerKillers(timers);
+  }, [alert]);
 
   return createPortal(
     <StyledList

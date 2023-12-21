@@ -5,6 +5,7 @@ import GetAllProducts from "./components/products/GetAllProducts";
 import { useAppDispatch } from "./store/hooks";
 import { add } from "./store/slice/alertSlice";
 import GetOneProduct from "./components/products/GetOneProduct";
+import CategorySelector from "./components/CategorySelector";
 
 function App() {
   const store = useContext(storeServiceContext);
@@ -29,6 +30,7 @@ function App() {
       <DropAlert />
       <GetAllProducts />
       <GetOneProduct />
+      <CategorySelector />
     </>
   );
 }

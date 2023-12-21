@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "..";
-import delay from "../../utils/delay";
 import { AlertItem } from "src/types/alert.type";
 
 interface InitialState {
@@ -22,18 +21,12 @@ export const alertSlice = createSlice({
     del: (state, { payload }: PayloadAction<number>) => {
       state.stack = state.stack.filter((_, i) => i !== payload);
     },
-    clear: (state, { payload }: PayloadAction<() => void>) => {
+    clear: (state) => {
       if (!state.stack.length) return;
 
-      const t = setInterval(() => {
-        if (!state.stack.length) {
-          payload();
-          clearInterval(t);
-        }
-        console.log("calling~");
-
-        state.stack = state.stack.filter((_, i) => i !== 0);
-      }, 100);
+      while (state.stack.length) {
+        state.stack = state.stack.filter((_, i) => i !== 0)
+      }
     },
   },
 });
