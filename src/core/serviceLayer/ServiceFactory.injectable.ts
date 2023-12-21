@@ -116,6 +116,8 @@ export default class ServiceFactory {
       _baseURL = baseURL as string;
     }
 
+    // console.log(_baseURL);
+
     const basicConfig = {
       ...serviceConfig,
       auth: { ...auth },
@@ -128,6 +130,10 @@ export default class ServiceFactory {
     delete basicConfig.description;
     delete basicConfig.children;
     delete basicConfig.api;
+
+    if ((basicConfig as ServiceConfigRoot)?.baseURL) {
+      delete (basicConfig as Partial<ServiceConfigRoot>).baseURL;
+    }
 
     const nodeConfig = Object.assign({ baseURL: _baseURL }, basicConfig) as InheritConfig;
 
@@ -257,6 +263,8 @@ export default class ServiceFactory {
     const { baseURL } = parentConfig;
 
     const url = this.path.join(baseURL, route);
+
+    console.log(url);
 
     const configCopy = deepClone(parentConfig);
 
