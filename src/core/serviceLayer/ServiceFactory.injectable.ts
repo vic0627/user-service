@@ -15,6 +15,7 @@ import ScheduledTask from "../scheduledTask/ScheduledTask.provider";
 import Path from "src/utils/Path.provider";
 import TypeLib from "../validationEngine/TypeLib.provider";
 import { Payload } from "src/types/ruleObject.type";
+import DocFactory from "../documentationGenerator/DocFactory.injectable";
 
 /**
  * 抽象層建立、配置繼承與複寫
@@ -31,6 +32,7 @@ export default class ServiceFactory {
     private readonly path: Path,
     private readonly apiFactory: APIFactory,
     private readonly scheduledTask: ScheduledTask,
+    private readonly docFactory: DocFactory,
   ) {}
 
   createService(serviceConfig: ServiceConfigRoot) {
@@ -38,6 +40,9 @@ export default class ServiceFactory {
 
     // 先建構根節點
     const service = this.#buildServiceTree({ serviceConfig });
+
+    // doc: 將config傳入docFactory
+    this.docFactory.setDocFactoryConfigData(serviceConfig);
 
     this.typeLib.initLib();
 

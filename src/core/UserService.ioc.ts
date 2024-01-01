@@ -16,10 +16,11 @@ import { TypeValidator } from "src/types/ruleLiteral.type";
 import { RuleObjectInterface, ValidRule } from "src/types/ruleObject.type";
 import { ServiceConfigRoot, ServiceInterceptor } from "src/types/userService.type";
 import ServiceFormData from "src/core/formData/ServcieFormData.provider";
+import DocFactory from "./documentationGenerator/DocFactory.injectable";
 
 @IOCContainer({
   provides: [TypeLib, Byte, ByteConvertor, XHR, PromiseInterceptors, ScheduledTask, WebStorage, Path, ServiceFormData],
-  imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory, CacheManager],
+  imports: [StringRule, RuleArray, RuleObject, ServiceFactory, APIFactory, CacheManager, DocFactory],
 })
 class UserService {
   scheduledTask;
