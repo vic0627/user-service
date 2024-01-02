@@ -28,24 +28,55 @@ export default class DocViewObj {
 }
 
 export class ChildObjData {
-  #rootTitle!: string;
+  #rootTitle?: string;
   #childTitleText?: string;
   #childDescription?: string;
 
-  #childObjDataList?: ChildObjData;
+  #childObjDataList?: ChildObjData[];
   #apiObjDataList?: ApiObjData[];
 
-  constructor(serviceConfig: ServiceConfigChild, rootTitle: string) {
+  constructor(serviceConfig: ServiceConfigChild, rootTitle?: string) {
     this.#rootTitle = rootTitle;
     this.childTitleText = serviceConfig.name || serviceConfig.route;
     this.childDescription = serviceConfig.description;
 
-    // 有ＡＰＩ：[]
+    // 處理ＡＰＩ
+    this.#apiObjDataList = [];
+
     if (Array.isArray(serviceConfig.api)) {
-      this.#apiObjDataList = [];
+      // 有ＡＰＩ：[]
       serviceConfig.api.forEach((item) => {
         const apiItem = new ApiObjData(item, this.childTitleText);
         this.#apiObjDataList?.push(apiItem);
+      });
+    } else if (!serviceConfig.api) {
+      // 有ＡＰＩ：{}
+      const apiItem = new ApiObjData(serviceConfig.api, this.childTitleText);
+      this.#apiObjDataList?.push(apiItem);
+    }
+
+    // 處理子路由
+    if (serviceConfig.children) {
+      this.#childObjDataList = [];
+      serviceConfig.children.forEach((item) => {
+        const childItem = new ChildObjData(item, this.#childTitleText);
+        this.#childObjDataList?.push(childItem);
+
+        // 子路由無配置ＡＰＩ
+        if (!item.api) {
+          const apiItem = new ApiObjData(
+            { name: item.name || item.route, description: item.description },
+            this.childTitleText,
+          );
+          this.#apiObjDataList?.push(apiItem);
+        } else if (!Array.isArray(item.api)) {
+          // 子路由有配置ＡＰＩ，但為{}
+          const apiConfigName = { name: item.api?.name || item.name || item.route };
+          const newApiConfig = { ...item.api, ...apiConfigName };
+          const apiItem = new ApiObjData(newApiConfig, this.childTitleText);
+
+          this.#apiObjDataList?.push(apiItem);
+        }
       });
     }
   }
@@ -69,15 +100,16 @@ export class ApiObjData {
   #payloadDataList?: PayloadData[];
 
   constructor(apiConfig: ServiceApiConfig | undefined, childTitle: string) {
+    this.#payloadDataList = this.#getPayLoadDataList(apiConfig);
     this.#childTitle = childTitle;
     this.apiTitleText = apiConfig?.name || "undefined??";
     this.apiDescription = apiConfig?.description || "undefined";
-
-    this.#payloadDataList = this.#getPayLoadDataList(apiConfig);
   }
 
   set apiTitleText(text: string) {
-    this.#apiTitleText = `${this.#childTitle}.${text}(payload)`;
+    this.#apiTitleText = `${this.#childTitle}.${text}(${
+      this.#payloadDataList && this.#payloadDataList?.length > 0 ? "payload" : ""
+    })`;
   }
 
   set apiDescription(text: string) {
