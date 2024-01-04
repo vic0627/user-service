@@ -14,16 +14,34 @@ export default class DocViewObj {
 
     serviceConfig.children?.forEach((item) => {
       const childItem = new ChildObjData(item, this.#rootTitle);
+
+      // 子：ＡＰＩ：{}
+
       this.#childObjDataList?.push(childItem);
     });
   }
 
   set rootTitleText(text: string) {
-    this.#rootTitleText = `${text} API documentation`;
+    this.#rootTitleText = ` $${text} API documentation`;
   }
 
   set rootDescription(text: string | undefined) {
     this.#rootDescription = `${text}`;
+  }
+
+  getRenderData() {
+    const rootChildrenList = this.#childObjDataList?.reduce((acc: any[], crr) => {
+      const renderData = crr.getRenderData();
+      acc.push(renderData);
+
+      return acc;
+    }, []);
+
+    return {
+      rootTitleText: this.#rootTitleText,
+      rootDesText: this.#rootDescription,
+      rootChildrenList: rootChildrenList,
+    };
   }
 }
 
@@ -40,42 +58,46 @@ export class ChildObjData {
     this.childTitleText = serviceConfig.name || serviceConfig.route;
     this.childDescription = serviceConfig.description;
 
-    // 處理ＡＰＩ
+    // 子、孫：處理ＡＰＩ
     this.#apiObjDataList = [];
 
     if (Array.isArray(serviceConfig.api)) {
-      // 有ＡＰＩ：[]
+      // 子、孫：有ＡＰＩ：[]
       serviceConfig.api.forEach((item) => {
         const apiItem = new ApiObjData(item, this.childTitleText);
         this.#apiObjDataList?.push(apiItem);
       });
-    } else if (!serviceConfig.api) {
-      // 有ＡＰＩ：{}
+    } else if (serviceConfig.api) {
+      // 子：有ＡＰＩ：{}
       const apiItem = new ApiObjData(serviceConfig.api, this.childTitleText);
       this.#apiObjDataList?.push(apiItem);
     }
 
-    // 處理子路由
+    // 處理孫路由
     if (serviceConfig.children) {
       this.#childObjDataList = [];
       serviceConfig.children.forEach((item) => {
-        const childItem = new ChildObjData(item, this.#childTitleText);
-        this.#childObjDataList?.push(childItem);
-
-        // 子路由無配置ＡＰＩ
         if (!item.api) {
+          // 孫路由無配置ＡＰＩ
           const apiItem = new ApiObjData(
             { name: item.name || item.route, description: item.description },
             this.childTitleText,
           );
           this.#apiObjDataList?.push(apiItem);
         } else if (!Array.isArray(item.api)) {
-          // 子路由有配置ＡＰＩ，但為{}
-          const apiConfigName = { name: item.api?.name || item.name || item.route };
+          // 孫路由有配置ＡＰＩ，但為{}
+          const apiConfigName = {
+            name: item.api?.name || item.name || item.route,
+            description: item.api?.description || item.description,
+          };
           const newApiConfig = { ...item.api, ...apiConfigName };
           const apiItem = new ApiObjData(newApiConfig, this.childTitleText);
 
           this.#apiObjDataList?.push(apiItem);
+        } else {
+          // 孫路由有配置ＡＰＩ，且為[]
+          const childItem = new ChildObjData(item, this.#childTitleText);
+          this.#childObjDataList?.push(childItem);
         }
       });
     }
@@ -91,29 +113,63 @@ export class ChildObjData {
   set childDescription(text: string | undefined) {
     this.#childDescription = text;
   }
+  getRenderData() {
+    const apiList = this.#apiObjDataList?.reduce((acc: any[], cur) => {
+      const apiItem = cur.getRenderData();
+      acc.push(apiItem);
+
+      return acc;
+    }, []);
+
+    const childrenList = this.#childObjDataList?.reduce((acc: any[], crr) => {
+      const renderData = crr.getRenderData();
+      acc.push(renderData);
+
+      return acc;
+    }, []);
+
+    return {
+      childTitleText: this.#childTitleText,
+      childDesText: this.#childDescription,
+      apiList: apiList,
+      childrenList: childrenList,
+    };
+  }
 }
 
 export class ApiObjData {
   #childTitle!: string;
-  #apiTitleText!: string;
-  #apiDescription!: string;
+  #apiTitleText?: string;
+  #apiDescription?: string;
   #payloadDataList?: PayloadData[];
 
   constructor(apiConfig: ServiceApiConfig | undefined, childTitle: string) {
     this.#payloadDataList = this.#getPayLoadDataList(apiConfig);
     this.#childTitle = childTitle;
-    this.apiTitleText = apiConfig?.name || "undefined??";
-    this.apiDescription = apiConfig?.description || "undefined";
+    this.apiTitleText = apiConfig?.name || "";
+    this.apiDescription = apiConfig?.description || "";
   }
 
   set apiTitleText(text: string) {
-    this.#apiTitleText = `${this.#childTitle}.${text}(${
-      this.#payloadDataList && this.#payloadDataList?.length > 0 ? "payload" : ""
-    })`;
+    if (!text) {
+      this.#apiTitleText = text;
+    } else {
+      this.#apiTitleText = `${this.#childTitle}.${text}(${
+        this.#payloadDataList && this.#payloadDataList?.length > 0 ? "payload" : ""
+      })`;
+    }
   }
 
   set apiDescription(text: string) {
     this.#apiDescription = text;
+  }
+
+  getRenderData() {
+    return {
+      apiTitleText: this.#apiTitleText,
+      apiDesText: this.#apiDescription,
+      payloadList: this.#payloadDataList,
+    };
   }
 
   #getPayLoadDataList(apiConfig?: ServiceApiConfig): PayloadData[] {
@@ -186,19 +242,31 @@ export class PayloadData {
     }
 
     // 判斷customize validator
-    if (typeof item[1] !== "string") {
+    // TODO 待修正
+    if (typeof item[1] === "symbol") {
+      this.#customizeValidator = true;
+      const match = item[1].toString().match(/Symbol\(([^)]+)\)/);
+
+      if (match) {
+        const ruleString = match[1].split(",")[0];
+        this.#setRuleForString(ruleString);
+      }
+    } else if (typeof item[1] !== "string") {
       this.#customizeValidator = true;
     } else {
-      // 判斷type
-      const tempValidatorList = item[1].split("@");
-      this.#type = tempValidatorList[0];
+      this.#setRuleForString(item[1]);
+    }
+  }
 
-      if (tempValidatorList[1]) {
-        const tempLimitList = tempValidatorList[1].split(":");
+  #setRuleForString(item: string) {
+    const tempValidatorList = item.split("@");
+    this.#type = tempValidatorList[0];
 
-        this.#min = tempLimitList[0] ? tempLimitList[0] : "--";
-        this.#max = tempLimitList[1] ? tempLimitList[1] : "--";
-      }
+    if (tempValidatorList[1]) {
+      const tempLimitList = tempValidatorList[1].split(":");
+
+      this.#min = tempLimitList[0] ? tempLimitList[0] : "--";
+      this.#max = tempLimitList[1] ? tempLimitList[1] : "--";
     }
   }
 }

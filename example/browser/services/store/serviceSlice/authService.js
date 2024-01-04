@@ -45,6 +45,10 @@ export default {
   api: {
     name: "login",
     method: "POST",
+    body: {
+      username: "使用者名稱",
+      password: "使用者密碼",
+    },
     rules: {
       username: usernameIntersectionRules,
       password: "string@8:20",

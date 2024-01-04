@@ -6,14 +6,18 @@ import DocViewObj from "./doc-view-obj";
 export default class DocFactory {
   #serviceConfig?: ServiceConfigRoot | ServiceConfigChild;
   #docViewObj!: DocViewObj;
+  #renderData: any;
 
   setDocFactoryConfigData(serviceConfig: ServiceConfigRoot) {
     this.#serviceConfig = serviceConfig;
     this.#docViewObj = new DocViewObj(serviceConfig);
+    this.#renderData = this.#docViewObj.getRenderData();
     // eslint-disable-next-line no-console
     console.log("origin config data", this.#serviceConfig);
     // eslint-disable-next-line no-console
     console.log("view config data", this.#docViewObj);
+    // eslint-disable-next-line no-console
+    console.log("render data", this.#renderData);
 
     if (!this.#serviceConfig) {
       throw new Error("no serviceConfig data");
