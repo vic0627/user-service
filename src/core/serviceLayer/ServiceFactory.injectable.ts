@@ -264,8 +264,6 @@ export default class ServiceFactory {
 
     const url = this.path.join(baseURL, route);
 
-    console.log(url);
-
     const configCopy = deepClone(parentConfig);
 
     Object.assign(configCopy, child);
