@@ -6,6 +6,7 @@ import { useAppDispatch } from "./store/hooks";
 import { add } from "./store/slice/alertSlice";
 import GetOneProduct from "./components/products/GetOneProduct";
 import CategorySelector from "./components/CategorySelector";
+import PriceField from "./components/PriceField";
 
 function App() {
   const store = useContext(storeServiceContext);
@@ -31,6 +32,7 @@ function App() {
       <GetAllProducts />
       <GetOneProduct />
       <CategorySelector />
+      <PriceField />
     </>
   );
 }
