@@ -1,6 +1,6 @@
 import { MenuItem, TextField } from "@mui/material";
-import { ChangeEventHandler, Reducer, useEffect, useReducer, useState } from "react";
-import { useAlertSelector } from "src/store/hooks";
+import { ChangeEventHandler, Reducer, useEffect, useReducer } from "react";
+import useAlert from "src/composable/useAlert";
 export interface ValueModel {
   limit?: number;
   sort?: string;
@@ -40,18 +40,11 @@ const LimitAndSort = (options: LimitAndSortOptions) => {
 
   const [value, dispatchValue] = useReducer(valueReducer, { sort: "asc" });
 
-  const [limitError, setLimitError] = useState(false);
-  const [sortError, setSortError] = useState(false);
-
-  const alert = useAlertSelector();
+  const [[limitError, initLimitError], [sortError, initSortError]] = useAlert({ keyword: ["limit", "sort"] });
 
   useEffect(() => {
     if (typeof onChange === "function") onChange(value);
-
-    if (alert.findIndex((item) => item.message.includes("limit")) !== -1) setLimitError(true);
-
-    if (alert.findIndex((item) => item.message.includes("sort")) !== -1) setSortError(true);
-  }, [value, alert]);
+  }, [value]);
 
   const handleSortOnChange: ChangeEventHandler<HTMLTextAreaElement> = (e) => {
     const sort = e.target.value;
@@ -72,10 +65,9 @@ const LimitAndSort = (options: LimitAndSortOptions) => {
         size="small"
         select
         defaultValue="asc"
-        // helperText="Please select a sort strategy"
         error={sortError}
         onChange={handleSortOnChange}
-        onFocus={() => setSortError(false)}
+        onFocus={initSortError}
       >
         {sortOptions.map((o) => (
           <MenuItem key={o.value} value={o.value}>
@@ -89,7 +81,7 @@ const LimitAndSort = (options: LimitAndSortOptions) => {
         type="number"
         error={limitError}
         onChange={handleLimitOnChange}
-        onFocus={() => setLimitError(false)}
+        onFocus={initLimitError}
       />
     </>
   );

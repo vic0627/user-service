@@ -1,5 +1,5 @@
 import { Alert, AlertTitle, Collapse, List, ListItem } from "@mui/material";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { TransitionGroup } from "react-transition-group";
 import useTimer from "src/composable/useTimer";
@@ -22,9 +22,12 @@ const StyledAlert = styled(Alert)`
   pointer-events: visible;
 `;
 
+const initNum = 1000;
+
 const DropAlert = () => {
   const [timerKillers, setTimerKillers] = useState<(() => void)[]>([]);
-  // const [fadeLock, setFadeLock] = useState(false);
+  const [fadeTime, setFadeTime] = useState(initNum);
+  const previousLength = useRef(0);
 
   const dispatch = useAppDispatch();
   const alert = useAlertSelector();
@@ -52,19 +55,47 @@ const DropAlert = () => {
     popError(i);
   }, []);
 
+  const easing = useCallback((t: number) => {
+    if (t === initNum) return t * 0.999;
+    else return t * (t / initNum);
+  }, []);
+
   useEffect(() => {
     /** @todo 優化 - 離開的速度 */
+    if (!fadeTime) return;
+
     clearAllTimers();
 
-    const setTime = (t: number) => 1000 + (100 / alert.length) * t;
+    const setTime = (t: number) => fadeTime + (100 / alert.length) * t;
 
     const timers = alert.map((_, i) =>
-      useTimer(() => {
-        handleOnClose(i);
-      }, setTime(i)),
+      useTimer(
+        () => {
+          handleOnClose(i);
+        },
+        setTime(i),
+      ),
     );
 
     setTimerKillers(timers);
+  }, [fadeTime]);
+
+  useEffect(() => {
+    const currentLength = alert.length;
+
+    if (previousLength.current > currentLength) {
+      setFadeTime((pre) => pre * 0.8);
+    } else if (currentLength > previousLength.current) {
+      setFadeTime(initNum);
+    } else if (currentLength === previousLength.current) {
+      if (currentLength === 0) {
+        setFadeTime(0);
+      } else {
+        setFadeTime(initNum);
+      }
+    }
+
+    previousLength.current = currentLength;
   }, [alert]);
 
   return createPortal(

@@ -38,9 +38,10 @@ module.exports = {
       {
         blankLine: "always",
         prev: "expression",
-        next: ["return", "throw"],
+        next: ["return", "throw", "break", "continue"],
       },
     ],
+    "no-fallthrough": 1,
     "spaced-comment": 2,
     "@stylistic/max-len": [2, 120],
     // "@stylistic/indent": [2, 2],
